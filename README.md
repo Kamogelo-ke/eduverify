@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-At TUT, verifying whether students qualify to write exams and confirming their identity is currently done manually. This process is slow, prone to errors, and creates long queues. Some students may even impersonate others, compromising the fairness and security of examinations.
+At Tshwane University of Technology, verifying whether students qualify to write exams and confirming their identity is currently done manually. This process is slow, prone to errors, and creates long queues. Some students may even impersonate others, compromising the fairness and security of examinations.
 
 **Proposed Solution:**  
 EduVerify is an AI-driven system that automates exam verification. Using real-time face recognition and liveness detection, the system verifies student identities at exam venues and checks their eligibility by querying the university database for predicate marks. Students receive instant feedback via AI-assisted text-to-speech, while invigilators can override failed recognition attempts. This solution reduces queues, prevents cheating, and ensures exams are fair and organized.
