@@ -1,1 +1,38 @@
+name: EduVerify CI
+
 on: [push, pull_request]
+
+jobs:
+  # Job 1: Test the React Frontend
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm install
+      - name: Run Build
+        run: |
+          cd frontend
+          npm run build
+
+  # Job 2: Test the FastAPI Backend
+  backend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+      # Uncomment the next line if you add a test suite later
+      # - run: cd backend && pytest
