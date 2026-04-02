@@ -34,3 +34,32 @@ EduVerify is an AI-driven system that automates exam verification. Using real-ti
 - **Deployment:** Docker  
 
 This combination of technologies ensures a fast, secure, and scalable system capable of automating exam verification efficiently and accurately.
+
+
+## Project Structure
+```text
+eduverify/
+├── frontend/                 # React application
+│   ├── src/
+│   │   ├── components/       # UI components (camera, dashboard)
+│   │   ├── pages/            # Admin, Invigilator, Student views
+│   │   └── services/         # API calls to backend
+│   └── package.json
+│
+├── backend/                  # Python FastAPI server
+│   ├── api/                  # API endpoints (verify, access control)
+│   ├── ai/                   # Face recognition models
+│   ├── database/             # Database connections & queries
+│   └── requirements.txt
+│
+├── shared/                   # Code used by BOTH frontend & backend
+│   └── types/                # Student data structures, API responses
+│
+├── docs/                     # Project documentation
+│   ├── SRS.pdf
+│   └── architecture-diagrams/
+│
+└── .github/
+    └── workflows/           # Automated testing & deployment
+        └── ci.yml
+```
