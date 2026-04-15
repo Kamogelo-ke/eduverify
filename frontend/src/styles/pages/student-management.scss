@@ -1,0 +1,161 @@
+@use "../base/variables" as *;
+@use "../base/colors" as *;
+@use "../components/header";
+@use "../components/footer";
+
+.dashboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  .content-area {
+    padding: 20px 40px;
+    flex: 1;
+
+    .tab-row {
+      display: flex;
+      margin-bottom: 20px;
+      gap: 5px;
+      
+      button {
+        padding: 8px 18px;
+        border: 1px solid #cbd5e1;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &.active {
+          background: #003366;
+          color: white;
+          border-color: #003366;
+        }
+
+        &.inactive {
+          color: #475569;
+          &:hover { background: #cbd5e1; }
+        }
+      }
+    }
+
+    .main-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+
+      header {
+        background: #00529B;
+        color: white;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        
+        .title { 
+          display: flex; 
+          align-items: center; 
+          gap: 8px; 
+          h2 { font-size: 1rem; margin: 0; } 
+        }
+
+        .add-btn {
+          background: #FFD700;
+          color: black;
+          border: none;
+          padding: 6px 14px;
+          border-radius: 4px;
+          font-weight: bold;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+        }
+      }
+
+      .table-container {
+        // Fix: Removed padding here so lines stretch to the edges
+        padding: 0; 
+
+        .search-box {
+          position: relative;
+          margin: 20px; // Fix: Put spacing here instead
+          input {
+            width: 100%;
+            padding: 10px 12px 10px 40px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+          }
+          .icon { 
+            position: absolute; 
+            left: 12px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: #94a3b8; 
+          }
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse; // Fix: Joins cell borders into solid lines
+          
+          th {
+            text-align: left;
+            padding: 12px 20px; // Added horizontal padding to replace container padding
+            border-bottom: 2px solid #334155; 
+            font-size: 0.85rem;
+            color: #475569;
+          }
+
+          td {
+            padding: 14px 20px; // Added horizontal padding to replace container padding
+            border-bottom: 1px solid #334155; 
+            font-size: 0.85rem;
+            vertical-align: middle;
+          }
+
+          .bold { font-weight: 700; }
+
+          .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 12px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.75rem;
+
+            &.not-set { background: #f8fafc; color: #64748b; }
+            &.registered { 
+              background: #f0fdf4; 
+              color: #16a34a; 
+              border-color: #bbf7d0; 
+            }
+          }
+
+          .actions {
+            // Keep as a table cell for the border, but use a div inside for layout
+            .actions-inner {
+              display: flex;
+              gap: 15px;
+              align-items: center;
+            }
+            button { 
+              background: none; 
+              border: none; 
+              cursor: pointer; 
+              transition: transform 0.1s;
+              &:hover { transform: scale(1.1); }
+              &.edit { color: #00529B; }
+              &.delete { color: #ef4444; }
+            }
+          }
+        }
+      }
+    }
+  }
+}
