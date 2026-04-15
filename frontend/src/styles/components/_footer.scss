@@ -1,0 +1,68 @@
+@use "../base/colors" as *;
+
+.main-footer {
+  margin-top: auto; 
+  background: #001e3d; // Dark Navy background
+  color: white;
+  padding: 15px 40px;
+  
+  // The multi-color transition: Blue -> Red -> Yellow -> Red
+  border-top: 5px solid;
+  border-image: linear-gradient(
+    to right, 
+    #00529B, 
+    #ED1C24, 
+    #FFD700, 
+    #ED1C24
+  ) 1;
+  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    img { 
+      height: 38px; 
+      background: white; 
+      padding: 3px; 
+      border-radius: 2px;
+    }
+
+    .footer-text {
+      h3 { 
+        font-size: 0.95rem; 
+        margin: 0; 
+        font-weight: 600; 
+      }
+      p { 
+        font-size: 0.75rem; 
+        margin: 0; 
+        opacity: 0.8; 
+      }
+    }
+  }
+
+  .footer-right {
+    text-align: right;
+    
+    p { 
+      font-size: 0.8rem; 
+      margin: 0; 
+      opacity: 0.9; 
+    }
+    
+    .motto { 
+      color: #FFD700; // TUT Yellow
+      font-style: italic; 
+      display: block; 
+      margin-top: 4px; 
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.3px;
+    }
+  }
+}
