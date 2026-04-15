@@ -1,0 +1,231 @@
+// Use your colors file directly
+@use "../base/colors" as *;
+
+// A few specific colors for the scanner that aren't in your main colors file yet
+$dark-bg: #0f172a;
+$text-muted: #64748b;
+
+.scanner-page-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem;
+    background-color: $bg-light; // Using your bg-light variable
+    min-height: calc(100vh - 140px);
+
+    .panel {
+        background: $white; // Using your white variable
+        border: 1px solid $border-gray; // FIXED: Using your border-gray variable
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+        .panel-header {
+            background-color: $tut-blue; // FIXED: Using your tut-blue variable
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            .icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        .panel-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+
+            /* Form Elements */
+            .form-group {
+                margin-bottom: 1rem;
+
+                label {
+                    display: block;
+                    font-size: 0.875rem;
+                    color: $text-dark; // Using your text-dark variable
+                    margin-bottom: 0.5rem;
+                }
+
+                select {
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid $border-gray;
+                    border-radius: 4px;
+                    outline: none;
+                    color: $text-dark;
+
+                    &:focus {
+                        border-color: $tut-blue;
+                    }
+                }
+            }
+
+            /* Camera Box */
+            .camera-display {
+                background-color: $dark-bg;
+                flex-grow: 1;
+                min-height: 300px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 1rem;
+                border-radius: 4px;
+                overflow: hidden;
+
+                .camera-off-state {
+                    text-align: center;
+                    color: white;
+
+                    .large-icon {
+                        width: 48px;
+                        height: 48px;
+                        color: $tut-yellow; // FIXED: Using your tut-yellow variable
+                        margin-bottom: 0.5rem;
+                    }
+
+                    h3 {
+                        margin: 0 0 0.25rem 0;
+                        font-size: 1.125rem;
+                        font-weight: 500;
+                    }
+
+                    p {
+                        margin: 0;
+                        color: #94a3b8;
+                        font-size: 0.875rem;
+                    }
+                }
+
+                .video-placeholder {
+                    color: white;
+                }
+            }
+
+            /* Button */
+            .scan-button {
+                background-color: $tut-blue;
+                color: white;
+                border: none;
+                padding: 0.75rem;
+                border-radius: 4px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                font-weight: 600;
+                transition: background-color 0.2s;
+
+                &:hover {
+                    background-color: darken(#00529B, 10%); // Darkens the blue slightly
+                }
+
+                .icon {
+                    width: 20px;
+                    height: 20px;
+                }
+            }
+
+            /* Empty State for Results */
+            &.empty-results {
+                align-items: center;
+                justify-content: center;
+
+                .empty-state {
+                    text-align: center;
+                    color: $text-muted;
+
+                    .scan-frame {
+                        width: 64px;
+                        height: 64px;
+                        color: $border-gray;
+                        margin-bottom: 1rem;
+                    }
+
+                    h3 {
+                        margin: 0 0 0.5rem 0;
+                        color: $text-dark;
+                        font-weight: 500;
+                    }
+
+                    p {
+                        margin: 0;
+                        font-size: 0.875rem;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Make it stack on smaller screens */
+@media (max-width: 768px) {
+    .scanner-page-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Add this at the bottom of studentScanner.scss */
+
+.video-stream {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Ensures the video fills the box without stretching weirdly */
+}
+
+/* Capture button styling override */
+.scan-button.capture-btn {
+    background-color: #10b981;
+
+    /* Green color for capturing */
+    &:hover {
+        background-color: darken(#10b981, 10%);
+    }
+}
+
+/* Styles for the right panel when an image is successfully captured */
+.success-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    width: 100%;
+
+    h3 {
+        margin: 0;
+        color: $text-dark;
+    }
+
+    .captured-preview {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 4px solid $tut-blue;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+
+        &.success {
+            background-color: #d1fae5;
+            color: #059669;
+            border: 1px solid #34d399;
+        }
+    }
+}
