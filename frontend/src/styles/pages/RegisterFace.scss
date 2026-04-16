@@ -1,0 +1,153 @@
+@use "sass:color";
+@use "../base/variables" as *;
+@use "../base/colors" as *;
+
+.register-container {
+  padding: $content-padding;
+  background-color: $bg-light;
+  min-height: calc(100vh - 160px);
+  justify-content: center;
+}
+
+.register-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.card {
+  background: $white;
+  border: 1px solid $border-gray;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+  .card-header {
+    background-color: $tut-blue;
+    color: $white;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  }
+
+  .card-content {
+    padding: 30px;
+  }
+}
+
+// Camera Box Styles
+.camera-box {
+  background-color: #0f172a; // Dark slate for camera area
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: $white;
+  text-align: center;
+
+  .user-plus-icon {
+    font-size: 3rem;
+    color: $tut-yellow;
+    margin-bottom: 10px;
+  }
+
+  h3 { margin-bottom: 5px; }
+  p { opacity: 0.8; font-size: 0.9rem; }
+}
+
+// Form Styles
+.registration-form {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      color: $text-dark;
+    }
+
+    input, select {
+      padding: 10px;
+      border: 1px solid $border-gray;
+      border-radius: 4px;
+      background-color: #f8fafc;
+      
+      &:focus {
+        outline: 2px solid $tut-blue;
+        background-color: $white;
+      }
+    }
+  }
+}
+
+// Info/Warning Box
+.info-box {
+  background-color: #f8fafc;
+  border: 1px solid $border-gray;
+  padding: 15px;
+  border-radius: 4px;
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  align-items: center;
+
+  .info-icon {
+    font-size: 1.5rem;
+    color: #94a3b8;
+  }
+
+  strong { display: block; color: #475569; }
+  p { margin: 0; font-size: 0.85rem; color: #64748b; }
+}
+
+// Button Styles
+.btn-camera {
+  width: 100%;
+  background-color: $tut-blue;
+  color: $white;
+  border: none;
+  padding: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.9; }
+}
+
+.btn-submit {
+  width: 100%;
+  background-color: $tut-yellow;
+  color: #000;
+  border: none;
+  padding: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  &:hover { background-color: color.adjust($tut-yellow, $lightness: -5%); }
+}

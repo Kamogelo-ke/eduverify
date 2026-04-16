@@ -16,29 +16,17 @@
 
     .tab-row {
       display: flex;
-      margin-bottom: 20px;
-      gap: 5px;
-      
+      margin-bottom: 25px;
       button {
-        padding: 8px 18px;
+        padding: 8px 16px;
         border: 1px solid #cbd5e1;
-        background: #e2e8f0;
+        border-bottom: none;
         display: flex;
         align-items: center;
         gap: 8px;
         font-weight: 600;
-        cursor: pointer;
-
-        &.active {
-          background: #003366;
-          color: white;
-          border-color: #003366;
-        }
-
-        &.inactive {
-          color: #475569;
-          &:hover { background: #cbd5e1; }
-        }
+        &.active { background: #003366; color: white; border-color: #003366; }
+        &.inactive { background: #e2e8f0; color: #334155; }
       }
     }
 

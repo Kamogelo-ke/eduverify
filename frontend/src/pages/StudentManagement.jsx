@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, BookOpen, Search, Plus, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Custom Hook
 import { useStudents } from '../hooks/useStudents'; 
@@ -12,6 +13,7 @@ import Footer from '../components/Footer';
 import '../styles/pages/student-management.scss';
 
 const StudentManagement = () => {
+  const navigate = useNavigate();
   const { 
     students, 
     searchTerm, 
@@ -32,8 +34,13 @@ const StudentManagement = () => {
         <section className="main-card">
           <header>
             <div className="title"><Users size={20} /> <h2>Student Management</h2></div>
-            <button className="add-btn"><Plus size={18} /> Add Student</button>
-          </header>
+            <button 
+              className="add-btn" 
+              onClick={() => navigate('/register-face')}
+            >
+              <Plus size={18} /> Add Student
+            </button>
+            </header>
 
           <div className="table-container">
             <div className="search-box">
