@@ -8,6 +8,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<StudentManagement />} />
+        <Route path="/students" element={<StudentManagement />} />
         <Route path="/register-face" element={<RegisterFace />} />
       </Routes>
     </Router>

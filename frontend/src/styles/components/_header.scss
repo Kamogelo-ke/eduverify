@@ -60,7 +60,7 @@
     display: flex;
     gap: 25px; // Spaced out like the image
 
-    button {
+  button {
       background: none;
       border: none;
       color: white;
@@ -70,13 +70,18 @@
       gap: 8px;
       cursor: pointer;
       transition: all 0.2s ease;
-
+      padding: 4px 0; // Add some vertical padding for the shadow to show
+      
       &:hover { 
         color: #FFD700; 
-        opacity: 1;
       }
 
-      // The distinct yellow Admin button
+      // Updated highlight logic using box-shadow instead of border
+      &.active {
+        color: #FFD700;
+        font-weight: bold;
+      }
+
       &.admin-pill {
         background: #FFD700;
         color: #000;
@@ -84,6 +89,7 @@
         border-radius: 4px;
         font-weight: 800;
         text-transform: capitalize;
+        box-shadow: none; // No underline for the pill
         
         &:hover {
           background: #e6c200;

@@ -14,7 +14,8 @@
   grid-template-columns: 1fr 1fr;
   gap: 25px;
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;      // Change this from 1200px to 100%
+  align-items: stretch; // Add this to make the boxes equal in height
 }
 
 .card {
@@ -68,28 +69,23 @@
 
 // Form Styles
 .registration-form {
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-  }
-
-  .form-group {
-    margin-bottom: 15px;
+.form-group {
+    margin-bottom: 25px; // More space between different fields
     display: flex;
     flex-direction: column;
 
     label {
       font-weight: 600;
-      font-size: 0.85rem;
-      margin-bottom: 5px;
+      font-size: 0.9rem;
+      margin-bottom: 10px; // More space between label and the box
       color: $text-dark;
     }
 
     input, select {
-      padding: 10px;
+      padding: 14px; // Makes the input boxes taller/larger
       border: 1px solid $border-gray;
       border-radius: 4px;
+      font-size: 1rem;
       background-color: #f8fafc;
       
       &:focus {
@@ -140,7 +136,7 @@
   background-color: $tut-yellow;
   color: #000;
   border: none;
-  padding: 14px;
+  padding: 20px;
   font-weight: bold;
   cursor: pointer;
   border-radius: 4px;
@@ -148,6 +144,8 @@
   justify-content: center;
   align-items: center;
   gap: 8px;
+
+  margin-top: 130px;
 
   &:hover { background-color: color.adjust($tut-yellow, $lightness: -5%); }
 }
