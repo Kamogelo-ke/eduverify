@@ -7,7 +7,6 @@ export const useStudentScanner = () => {
     const verifyStudentFace = async (examId, imageBase64) => {
         setIsVerifying(true);
         try {
-            // Replace with your actual backend URL
             const response = await fetch('http://localhost:5000/api/verify-face', {
                 method: 'POST',
                 headers: {
@@ -19,16 +18,21 @@ export const useStudentScanner = () => {
                 })
             });
 
-            if (!response.ok) {
+            // Always try to parse the JSON first, even if response.ok is false,
+            // because the backend might be sending { noFaceDetected: true } alongside an error code.
+            const data = await response.json();
+
+            // If it's a server crash AND there's no useful data, then throw an error
+            if (!response.ok && !data) {
                 throw new Error('Verification failed on the server.');
             }
 
-            const data = await response.json();
-            return data; // Returns the result to your component
+            return data; // Returns the result (including failure reasons) to your component
 
         } catch (error) {
             console.error("Error sending face to backend:", error);
-            throw error;
+            // Return a fallback object so the frontend doesn't crash completely
+            return { success: false, error: true };
         } finally {
             setIsVerifying(false);
         }
