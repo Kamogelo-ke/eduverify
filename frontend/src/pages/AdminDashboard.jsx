@@ -1,4 +1,5 @@
 // src/pages/AdminDashboard.jsx
+import { FaUsers, FaCheckCircle, FaBook, FaChartLine, FaCalendarAlt, FaChartPie } from "react-icons/fa";
 import React from 'react';
 import '../styles/pages/AdminDashboard.scss';
 import Header from '../components/Header';
@@ -14,37 +15,55 @@ const AdminDashboard = () => {
       <Header />
 
       {/* Stats Cards */}
-      <div className="stats-cards">
-        <div className="stat-card">
-          <h4>Total Students</h4>
-          <p>{stats.totalStudents}</p>
-        </div>
+     <div className="stats-cards">
+  <div className="stat-card">
+    <div className="card-top">
+      <h4>Total Students</h4>
+      <FaUsers className="icon" />
+    </div>
+    <p>{stats.totalStudents}</p>
+  </div>
 
-        <div className="stat-card">
-          <h4>Face Registered</h4>
-          <p>{stats.faceRegistered}</p>
-        </div>
+  <div className="stat-card">
+    <div className="card-top">
+      <h4>Face Registered</h4>
+      <FaCheckCircle className="icon" />
+    </div>
+    <p>{stats.faceRegistered}</p>
+  </div>
 
-        <div className="stat-card">
-          <h4>Total Exams</h4>
-          <p>{stats.totalExams}</p>
-        </div>
+  <div className="stat-card">
+    <div className="card-top">
+      <h4>Total Exams</h4>
+      <FaBook className="icon" />
+    </div>
+    <p>{stats.totalExams}</p>
+  </div>
 
-        <div className="stat-card">
-          <h4>Active Exams</h4>
-          <p>{stats.activeExams}</p>
-        </div>
+  <div className="stat-card">
+    <div className="card-top">
+      <h4>Active Exams</h4>
+      <FaChartLine className="icon" />
+    </div>
+    <p>{stats.activeExams}</p>
+  </div>
 
-        <div className="stat-card">
-          <h4>Today's Verifications</h4>
-          <p>{stats.todaysVerifications}</p>
-        </div>
+  <div className="stat-card">
+    <div className="card-top">
+      <h4>Today's Verifications</h4>
+      <FaCalendarAlt className="icon" />
+    </div>
+    <p>{stats.todaysVerifications}</p>
+  </div>
 
-        <div className="stat-card">
-          <h4>Success Rate</h4>
-          <p>{stats.successRate}</p>
-        </div>
-      </div>
+  <div className="stat-card">
+    <div className="card-top">
+      <h4>Success Rate</h4>
+      <FaChartPie className="icon" />
+    </div>
+    <p>{stats.successRate}</p>
+  </div>
+</div>
 
       {/* Dashboard Bottom */}
       <div className="dashboard-bottom">

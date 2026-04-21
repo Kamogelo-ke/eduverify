@@ -3,7 +3,6 @@
 @use "../components/header";
 @use "../components/footer";
 
-/* 🔥 MAIN PAGE LAYOUT */
 .admin-dashboard {
   display: flex;
   flex-direction: column;
@@ -11,59 +10,88 @@
   background-color: $bg-light;
 }
 
-/* 🔥 CREATE REAL CONTENT SPACING */
 .stats-cards,
 .dashboard-bottom {
   width: 100%;
-  max-width: 1300px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* 🔥 SPACE BELOW HEADER */
 .stats-cards {
-  margin-top: 40px;   // 👈 BIG FIX (space from header)
+  margin-top: 40px;
   margin-bottom: 30px;
 }
 
-/* 🔥 STATS CARDS */
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 30px;   // 👈 increased spacing
+  gap: 30px;
 }
 
 .stat-card {
   background: $white;
-  padding: 22px;   // 👈 more breathing room
+  padding: 22px;
   border-radius: 14px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-top: 5px solid transparent;
+  color: $tut-dark-blue;
 
   h4 {
     font-size: 14px;
     margin-bottom: 8px;
-    color: $text-dark;
+    color: $text-dark; 
   }
 
   p {
     font-size: 26px;
     font-weight: bold;
-    color: $tut-dark-blue;
+    color: inherit;
   }
 }
 
-/* 🔥 DASHBOARD LAYOUT */
+.stat-card:nth-child(1) {
+  border-top-color: $tut-dark-blue;
+  color: $tut-dark-blue;
+}
+
+.stat-card:nth-child(2) {
+  border-top-color: $tut-yellow;
+  color: $tut-yellow;
+}
+
+.stat-card:nth-child(3) {
+  border-top-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.stat-card:nth-child(4) {
+  border-top-color: #16a34a;
+  color: #16a34a;
+}
+
+.stat-card:nth-child(5) {
+  border-top-color: $tut-red;
+  color: $tut-red;
+}
+
+.stat-card:nth-child(6) {
+  border-top-color: $tut-yellow;
+  color: $tut-yellow;
+}
+
+/* DASHBOARD LAYOUT */
 .dashboard-bottom {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 35px;  // 👈 MORE SPACE BETWEEN SECTIONS
+  gap: 35px;
   margin-bottom: 50px;
 }
 
-/* 🔥 SECTIONS */
+/* SECTIONS */
 .section {
   background: $white;
-  padding: 28px;   // 👈 MORE INTERNAL SPACE
+  padding: 28px;
   border-radius: 14px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 
@@ -74,7 +102,8 @@
   }
 }
 
-/* 🔥 TABLE */
+
+/* TABLE */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -92,7 +121,7 @@
   }
 }
 
-/* 🔥 BADGE */
+/* BADGE */
 .badge {
   background: $tut-blue;
   color: white;
@@ -101,7 +130,7 @@
   font-size: 12px;
 }
 
-/* 🔥 STATUS */
+/* STATUS */
 .status-error {
   background: rgba($tut-red, 0.1);
   color: $tut-red;
@@ -111,12 +140,12 @@
   font-size: 12px;
 }
 
-/* 🔥 EXAM CARD */
+/*  EXAM CARD */
 .exam-card {
   border: 1px solid $border-gray;
   padding: 20px;
   border-radius: 12px;
-  margin-top: 20px;  // 👈 space between cards
+  margin-top: 20px;
 
   &:hover {
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
@@ -129,12 +158,23 @@
   margin-bottom: 12px;
 }
 
-/* 🔥 PUSH FOOTER DOWN */
+/* 🔥 FOOTER PUSH */
 .main-footer {
   margin-top: auto;
 }
 
-/* 🔥 RESPONSIVE */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icon {
+  font-size: 20px;
+  opacity: 0.8;
+}
+
+/* RESPONSIVE */
 @media (max-width: 1024px) {
   .stats-cards {
     grid-template-columns: repeat(3, 1fr);

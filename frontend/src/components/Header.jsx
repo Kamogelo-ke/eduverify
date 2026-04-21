@@ -19,8 +19,8 @@ const Header = () => {
       </div>
       <div className="nav-actions">
         <button 
-          className={location.pathname === '/' ? 'active' : ''} 
-          onClick={() => navigate('/')}
+          className={location.pathname === '/admin-dashboard' ? 'active' : ''} 
+          onClick={() => navigate('/admin-dashboard')}
         >
           <LayoutDashboard size={18} /> Dashboard
         </button>
@@ -31,7 +31,7 @@ const Header = () => {
         >
           <UserCheck size={18} /> Students
         </button>
-
+        
         <button 
           className={location.pathname === '/register-face' ? 'active' : ''} 
           onClick={() => navigate('/register-face')}
