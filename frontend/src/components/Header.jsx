@@ -1,8 +1,12 @@
 import React from 'react';
-import { UserCheck, ShieldCheck, LayoutDashboard, Settings } from 'lucide-react';
+import { UserCheck, ShieldCheck, LayoutDashboard } from 'lucide-react';
 import tutLogo from '../images/tut-logo.png';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <nav className="main-nav">
       <div className="brand">
@@ -14,10 +18,26 @@ const Header = () => {
         </div>
       </div>
       <div className="nav-actions">
-        <button><UserCheck size={18} /> Verify Student</button>
-        <button><ShieldCheck size={18} /> Register Face</button>
-        <button><LayoutDashboard size={18} /> Dashboard</button>
-        <button className="admin-pill"><Settings size={18} /> Admin</button>
+        <button 
+          className={location.pathname === '/' ? 'active' : ''} 
+          onClick={() => navigate('/')}
+        >
+          <LayoutDashboard size={18} /> Dashboard
+        </button>
+
+        <button 
+          className={location.pathname === '/students' ? 'active' : ''} 
+          onClick={() => navigate('/students')}
+        >
+          <UserCheck size={18} /> Students
+        </button>
+
+        <button 
+          className={location.pathname === '/register-face' ? 'active' : ''} 
+          onClick={() => navigate('/register-face')}
+        >
+          <ShieldCheck size={18} /> Register Face
+        </button>
       </div>
     </nav>
   );

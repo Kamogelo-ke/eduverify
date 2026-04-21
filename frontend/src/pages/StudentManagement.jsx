@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, BookOpen, Search, Plus, Edit2, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Users, BookOpen, Search, CheckCircle, XCircle } from 'lucide-react';
 
 // Custom Hook
 import { useStudents } from '../hooks/useStudents'; 
@@ -15,8 +15,7 @@ const StudentManagement = () => {
   const { 
     students, 
     searchTerm, 
-    handleSearchChange, 
-    deleteStudent 
+    handleSearchChange 
   } = useStudents();
 
   return (
@@ -31,8 +30,10 @@ const StudentManagement = () => {
 
         <section className="main-card">
           <header>
-            <div className="title"><Users size={20} /> <h2>Student Management</h2></div>
-            <button className="add-btn"><Plus size={18} /> Add Student</button>
+            <div className="title">
+              <Users size={20} /> 
+              <h2>Student List</h2>
+            </div>
           </header>
 
           <div className="table-container">
@@ -56,7 +57,6 @@ const StudentManagement = () => {
                   <th>Program</th>
                   <th>Face</th>
                   <th>Exams</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -75,17 +75,11 @@ const StudentManagement = () => {
                       )}
                     </td>
                     <td>{student.exams}</td>
-                    <td className="actions">
-                      <button className="edit"><Edit2 size={16} /></button>
-                      <button className="delete" onClick={() => deleteStudent(student.id)}>
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
                   </tr>
                 ))}
                 {students.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="no-results">
+                    <td colSpan="7" className="no-results">
                       No students found matching your search.
                     </td>
                   </tr>
