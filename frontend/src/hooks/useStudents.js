@@ -9,7 +9,7 @@ const INITIAL_STUDENTS = [
 ];
 
 export const useStudents = () => {
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [students] = useState(INITIAL_STUDENTS);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Handles searching across ID, Name, and Email
@@ -24,12 +24,6 @@ export const useStudents = () => {
     });
   }, [students, searchTerm]);
 
-  const deleteStudent = (id) => {
-    if (window.confirm("Are you sure you want to delete this student?")) {
-      setStudents(prev => prev.filter(s => s.id !== id));
-    }
-  };
-
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
@@ -38,7 +32,6 @@ export const useStudents = () => {
     students: filteredStudents,
     searchTerm,
     handleSearchChange,
-    deleteStudent,
     totalCount: students.length
   };
 };
