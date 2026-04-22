@@ -1,0 +1,172 @@
+@use "../base/variables" as *;
+@use "../base/colors" as *;
+
+.login-page-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; // Allows it to fill the middle space perfectly
+    min-height: calc(100vh - 160px); // Adjusted for header and footer
+    background-color: $bg-light;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+
+    .login-card {
+        background: $white;
+        width: 100%;
+        max-width: 450px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid $border-gray;
+        padding: 40px;
+
+        /* Header & Logo */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 30px;
+
+            .logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                color: $tut-dark-blue;
+                margin-bottom: 25px;
+
+                .icon-box {
+                    background-color: $tut-dark-blue;
+                    color: $white;
+                    padding: 8px;
+                    border-radius: 8px;
+                    display: flex;
+                }
+
+                h2 {
+                    margin: 0;
+                    font-size: 1.4rem;
+                    font-weight: 700;
+                }
+            }
+
+            .welcome-text {
+                text-align: left;
+
+                h1 {
+                    margin: 0 0 5px 0;
+                    color: $tut-dark-blue;
+                    font-size: 1.75rem;
+                }
+
+                p {
+                    margin: 0;
+                    color: #64748b;
+                    font-size: 0.95rem;
+                }
+            }
+        }
+
+        /* Role Toggle Switch */
+        .role-toggle {
+            display: flex;
+            background-color: $bg-light;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 30px;
+            border: 1px solid $border-gray;
+
+            button {
+                flex: 1;
+                padding: 12px;
+                border: none;
+                background: transparent;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 0.95rem;
+                color: $text-dark;
+                cursor: pointer;
+                transition: all 0.2s ease;
+
+                &.active {
+                    background-color: $tut-dark-blue;
+                    color: $white;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+            }
+        }
+
+        /* Form Styles */
+        .login-form {
+            .form-group {
+                margin-bottom: 20px;
+
+                label {
+                    display: block;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    margin-bottom: 8px;
+                    color: $tut-dark-blue;
+                }
+
+                .input-wrapper {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+
+                    .input-icon {
+                        position: absolute;
+                        left: 14px;
+                        color: #94a3b8;
+                    }
+
+                    input {
+                        width: 100%;
+                        padding: 14px 14px 14px 42px; // Extra padding on left for the icon
+                        border: 1px solid $border-gray;
+                        border-radius: 6px;
+                        font-size: 0.95rem;
+                        color: $text-dark;
+                        background-color: #f8fafc;
+                        transition: all 0.2s;
+
+                        &:focus {
+                            outline: none;
+                            border-color: $tut-blue;
+                            background-color: $white;
+                            box-shadow: 0 0 0 3px rgba(0, 82, 155, 0.1);
+                        }
+                    }
+                }
+            }
+
+            .btn-submit {
+                width: 100%;
+                background-color: $tut-blue;
+                color: $white;
+                border: none;
+                padding: 14px;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 1rem;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+                margin-top: 30px;
+                transition: background-color 0.2s;
+
+                &:hover {
+                    background-color: $tut-dark-blue;
+                }
+            }
+        }
+
+        /* Footer text */
+        .login-footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+    }
+}
