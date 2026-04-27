@@ -5,17 +5,19 @@ import RegisterFace from './pages/RegisterFace';
 import AdminDashboard from './pages/AdminDashboard';
 import AddVenue from './pages/AddVenue';
 import ManageVenues from './pages/ManageVenues';
+import EntranceMonitor from './pages/EntranceMonitor';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AdminDashboard />} />
+        <Route path="/" element={<EntranceMonitor />} />
         <Route path="/students" element={<StudentManagement />} />
         <Route path="/register-face" element={<RegisterFace />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/add-venue" element={<AddVenue />} />
         <Route path="/manage-venues" element={<ManageVenues />} /> 
+        <Route path="/EntranceMonitor" element={<EntranceMonitor />} />
       </Routes>
     </Router>
   );
