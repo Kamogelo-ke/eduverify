@@ -5,7 +5,6 @@
 // import Footer from "../components/Footer";
 // import { useAddVenue } from "../hooks/useAddVenue";
 
-// // Styles
 // import "../styles/pages/AddVenue.scss";
 
 // const AddVenue = () => {
@@ -26,41 +25,35 @@
 //         {/* Navigation Tabs */}
 //         <div className="tab-row">
 //           <button className="inactive" onClick={() => navigate('/manage-venues')}>
-//             <Settings size={18} /> Manage Venues
+//             <Settings size={18} /> Manage Scheduled Exams
 //           </button>
 //           <button className="active">
-//             <PlusCircle size={18} /> Add New Venue
+//             <PlusCircle size={18} /> Schedule New Exam
 //           </button>
 //         </div>
 
-//         {/* SINGLE UNIFIED MAIN CARD */}
+//         {/* ONE CONTINUOUS WHITE CONTAINER */}
 //         <section className="main-card">
 //           <header>
 //             <div className="title">
-//               <MapPin size={20} /> 
-//               <h2>Add Exam Venue</h2>
+//               <PlusCircle size={20} /> 
+//               <h2>Assign Exam to Venue</h2>
 //             </div>
 //           </header>
 
 //           <form className="form-body" onSubmit={handleSubmit}>
             
 //             <div className="form-grid">
-//               {/* SECTION 1: VENUE INFO */}
+//               {/* VENUE SECTION */}
 //               <div className="form-section">
-//                 <h3><MapPin size={16} /> Venue Information</h3>
+//                 <h3>Venue Information</h3>
 //                 <div className="input-group">
 //                   <label>Venue Name</label>
-//                   <input 
-//                     type="text" 
-//                     name="venueName" 
-//                     placeholder="e.g. Gencor Hall" 
-//                     value={formData.venueName} 
-//                     onChange={handleChange} 
-//                   />
+//                   <input type="text" name="venueName" value={formData.venueName} onChange={handleChange} />
 //                 </div>
 //                 <div className="row">
 //                   <div className="input-group">
-//                     <label>Capacity</label>
+//                     <label>Seating Capacity</label>
 //                     <input type="number" name="capacity" value={formData.capacity} onChange={handleChange} />
 //                   </div>
 //                   <div className="input-group">
@@ -70,9 +63,9 @@
 //                 </div>
 //               </div>
 
-//               {/* SECTION 2: EXAM DETAILS */}
+//               {/* EXAM SECTION */}
 //               <div className="form-section">
-//                 <h3><ClipboardList size={16} /> Exam Details</h3>
+//                 <h3>Exam Details</h3>
 //                 <div className="input-group">
 //                   <label>Course Code</label>
 //                   <input type="text" name="courseCode" value={formData.courseCode} onChange={handleChange} />
@@ -94,9 +87,9 @@
 //               </div>
 //             </div>
 
-//             {/* SECTION 3: INVIGILATORS (Full Width) */}
+//             {/* INVIGILATORS SECTION */}
 //             <div className="form-section full-width">
-//               <h3><Users size={16} /> Assign Invigilators</h3>
+//               <h3>Assign Invigilators</h3>
 //               <div className="invigilators-grid">
 //                 {invigilatorList.map((inv, index) => (
 //                   <label key={index} className="checkbox-card">
@@ -111,10 +104,9 @@
 //               </div>
 //             </div>
 
-//             {/* GLOBAL ACTIONS */}
 //             <div className="form-actions">
 //               <button type="submit" className="save-btn">
-//                 <Save size={18} /> Save Exam Venue
+//                 <Save size={18} /> Finalize Assignment
 //               </button>
 //             </div>
 //           </form>
@@ -127,8 +119,9 @@
 // };
 
 // export default AddVenue;
+
 import React from "react";
-import { MapPin, ClipboardList, PlusCircle, Save, Settings, Users } from 'lucide-react';
+import { MapPin, ClipboardList, PlusCircle, Save, Settings, Users, Clock } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -178,39 +171,66 @@ const AddVenue = () => {
                 <h3>Venue Information</h3>
                 <div className="input-group">
                   <label>Venue Name</label>
-                  <input type="text" name="venueName" value={formData.venueName} onChange={handleChange} />
+                  <input 
+                    type="text" 
+                    name="venueName" 
+                    placeholder="e.g. Gencor Hall"
+                    value={formData.venueName} 
+                    onChange={handleChange} 
+                  />
                 </div>
-                <div className="row">
-                  <div className="input-group">
-                    <label>Seating Capacity</label>
-                    <input type="number" name="capacity" value={formData.capacity} onChange={handleChange} />
-                  </div>
-                  <div className="input-group">
-                    <label>Location</label>
-                    <input type="text" name="location" value={formData.location} onChange={handleChange} />
-                  </div>
+                <div className="input-group">
+                  <label>Seating Capacity</label>
+                  <input 
+                    type="number" 
+                    name="capacity" 
+                    placeholder="Max students allowed"
+                    value={formData.capacity} 
+                    onChange={handleChange} 
+                  />
                 </div>
               </div>
 
               {/* EXAM SECTION */}
               <div className="form-section">
-                <h3>Exam Details</h3>
+                <h3>Exam Schedule</h3>
                 <div className="input-group">
-                  <label>Course Code</label>
-                  <input type="text" name="courseCode" value={formData.courseCode} onChange={handleChange} />
+                  <label>Module Code & Name</label>
+                  <input 
+                    type="text" 
+                    name="courseCode" 
+                    placeholder="e.g. DSO34BT - Development Software III"
+                    value={formData.courseCode} 
+                    onChange={handleChange} 
+                  />
                 </div>
                 <div className="input-group">
-                  <label>Module Name</label>
-                  <input type="text" name="moduleName" value={formData.moduleName} onChange={handleChange} />
+                  <label>Examination Date</label>
+                  <input 
+                    type="date" 
+                    name="date" 
+                    value={formData.date} 
+                    onChange={handleChange} 
+                  />
                 </div>
                 <div className="row">
                   <div className="input-group">
-                    <label>Date</label>
-                    <input type="date" name="date" value={formData.date} onChange={handleChange} />
+                    <label>Start Time</label>
+                    <input 
+                      type="time" 
+                      name="startTime" 
+                      value={formData.startTime} 
+                      onChange={handleChange} 
+                    />
                   </div>
                   <div className="input-group">
-                    <label>Time</label>
-                    <input type="time" name="time" value={formData.time} onChange={handleChange} />
+                    <label>End Time</label>
+                    <input 
+                      type="time" 
+                      name="endTime" 
+                      value={formData.endTime} 
+                      onChange={handleChange} 
+                    />
                   </div>
                 </div>
               </div>
