@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserX, CheckCircle, XCircle, Camera, AlertTriangle, ShieldAlert } from 'lucide-react';
 
-import Header2 from '../components/Header2';
+import InvigilatorHeader from '../components/InvigilatorHeader';
 import Footer from '../components/Footer';
 import { useManualOverride } from '../hooks/useManualOverride';
 import '../styles/pages/_manualOverride.scss';
@@ -22,7 +22,7 @@ const ManualOverride = () => {
 
     return (
         <div className="dashboard-wrapper">
-            <Header2 />
+            <InvigilatorHeader />
 
             <div className="override-container">
                 {/* LEFT PANEL: Queue */}
