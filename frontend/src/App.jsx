@@ -4,6 +4,7 @@ import StudentManagement from './pages/StudentManagement';
 import StudentScanner from './pages/StudentScanner';
 import Login from './pages/Login';
 import RegisterFace from './pages/RegisterFace';
+import ManualOverride from './pages/ManualOverride';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/register-face" element={<RegisterFace />} />
           <Route path="/scanner" element={<StudentScanner />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/override" element={<ManualOverride />} />
         </Routes>
       </div>
     </BrowserRouter>

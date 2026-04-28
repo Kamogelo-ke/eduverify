@@ -27,7 +27,7 @@ export const useLogin = () => {
             if (role === 'admin') {
                 navigate('/students'); // Admins go to the Student Management dashboard
             } else {
-                navigate('/scanner');   // Invigilators go straight to the face scanner
+                navigate('/override');   // Invigilators go straight to the face scanner
             }
         }, 800);
     };
