@@ -1,0 +1,173 @@
+@use "../base/variables" as *;
+@use "../base/colors" as *;
+
+.dashboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8fafc;
+
+  .content-area {
+    padding: 20px 40px;
+    flex: 1;
+
+    .tab-row {
+      display: flex;
+      button {
+        padding: 10px 20px;
+        border: 1px solid #cbd5e1;
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        &.active { background: #003366; color: white; border-color: #003366; }
+        &.inactive { background: #e2e8f0; color: #334155; }
+      }
+    }
+
+    .main-card {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      overflow: hidden;
+
+      header {
+        background: #00529B;
+        color: white;
+        padding: 12px 20px;
+        .title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          h2 { font-size: 0.95rem; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        }
+      }
+
+      .card-body {
+        padding: 20px;
+
+        .venue-table {
+          width: 100%;
+          border-collapse: collapse;
+          
+          th {
+            text-align: left;
+            padding: 12px 15px;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid #e2e8f0;
+          }
+
+          td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+          }
+
+          .venue-info, .module-info, .time-info {
+            display: flex;
+            flex-direction: column;
+            .name, .code { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
+            .location, .desc { font-size: 0.75rem; color: #64748b; }
+          }
+
+          .invigilator-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            .tag {
+              background: #e0f2fe;
+              color: #0369a1;
+              padding: 2px 8px;
+              border-radius: 12px;
+              font-size: 0.7rem;
+              font-weight: 600;
+            }
+          }
+
+          .actions-cell {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+
+            button {
+              padding: 6px 12px;
+              border-radius: 4px;
+              font-size: 0.75rem;
+              font-weight: 600;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              gap: 5px;
+              border: 1px solid transparent;
+            }
+
+            .btn-edit {
+              background: #f1f5f9;
+              color: #003366;
+              &:hover { background: #e2e8f0; }
+            }
+
+            .btn-delete {
+              background: #fee2e2;
+              color: #dc2626;
+              padding: 6px;
+              &:hover { background: #fecaca; }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Modal Styles
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+
+  .modal-content {
+    background: white;
+    width: 500px;
+    border-radius: 8px;
+    overflow: hidden;
+
+    .modal-header {
+      background: #003366;
+      color: white;
+      padding: 15px 20px;
+      h3 { margin: 0; font-size: 1rem; }
+    }
+
+    .modal-body {
+      padding: 20px;
+      .input-group {
+        margin-bottom: 15px;
+        label { display: block; font-size: 0.7rem; font-weight: 700; margin-bottom: 5px; color: #64748b; }
+        input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+      }
+      .row { display: flex; gap: 10px; .input-group { flex: 1; } }
+    }
+
+    .modal-footer {
+      padding: 15px 20px;
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      button { padding: 8px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+      .btn-save { background: #003366; color: white; border: none; }
+      .btn-cancel { background: transparent; border: 1px solid #cbd5e1; }
+    }
+  }
+}
