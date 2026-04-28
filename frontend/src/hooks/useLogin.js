@@ -25,7 +25,7 @@ export const useLogin = () => {
 
             // Route based on role
             if (role === 'admin') {
-                navigate('/students'); // Admins go to the Student Management dashboard
+                navigate('/admin-dashboard'); // Admins go to the Student Management dashboard
             } else {
                 navigate('/override');   // Invigilators go straight to the face scanner
             }

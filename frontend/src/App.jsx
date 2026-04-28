@@ -5,6 +5,11 @@ import StudentScanner from './pages/StudentScanner';
 import Login from './pages/Login';
 import RegisterFace from './pages/RegisterFace';
 import ManualOverride from './pages/ManualOverride';
+import AdminDashboard from './pages/AdminDashboard';
+import AddVenue from './pages/AddVenue';
+import ManageVenues from './pages/ManageVenues';
+import EntranceMonitor from './pages/EntranceMonitor';
+
 
 function App() {
   return (
@@ -19,6 +24,10 @@ function App() {
           <Route path="/scanner" element={<StudentScanner />} />
           <Route path="/login" element={<Login />} />
           <Route path="/override" element={<ManualOverride />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/add-venue" element={<AddVenue />} />
+          <Route path="/manage-venues" element={<ManageVenues />} />
+          <Route path="/EntranceMonitor" element={<EntranceMonitor />} />
         </Routes>
       </div>
     </BrowserRouter>
@@ -26,3 +35,4 @@ function App() {
 }
 
 export default App;
+
