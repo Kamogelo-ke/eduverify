@@ -51,7 +51,7 @@ async def init_db():
     Should be called at startup once.
     """
     from models import (
-        student
+        student, access_log, ai_metrics, exam_session, system_user, venue, verification_log
     )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
