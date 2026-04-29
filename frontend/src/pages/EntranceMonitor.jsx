@@ -1,6 +1,6 @@
 import React from "react";
 import { ShieldCheck, UserCheck, UserX, AlertTriangle, Activity, Clock } from 'lucide-react';
-import Header from "../components/Header";
+import InvigilatorHeader from "../components/InvigilatorHeader";
 import Footer from "../components/Footer";
 import { useEntranceMonitor } from "../hooks/useEntranceMonitor";
 
@@ -12,7 +12,7 @@ const EntranceMonitor = () => {
 
   return (
     <div className="dashboard-wrapper">
-      <Header />
+      <InvigilatorHeader />
 
       <main className="content-area">
         <div className="monitor-header">

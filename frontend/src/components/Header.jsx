@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserCheck, ShieldCheck, LayoutDashboard, MapPin } from 'lucide-react';
+import { UserCheck, ShieldCheck, LayoutDashboard, MapPin, ScanEye, LogOut } from 'lucide-react';
 import tutLogo from '../images/tut-logo.png';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -43,6 +43,17 @@ const Header = () => {
           onClick={() => navigate('/add-venue')}
         >
           <MapPin size={18} /> Venue
+        </button>
+        <button className={location.pathname === '/add-invigilator' ? 'active' : ''} 
+          onClick={() => navigate('/add-invigilator')}
+        >
+          <ScanEye size={18} /> Add Invigilator
+        </button>
+        <button
+          onClick={() => navigate('/login')}
+        >
+        <LogOut size={18} style={{ marginRight: "6px" }} />
+         Logout
         </button>
       </div>
     </nav>

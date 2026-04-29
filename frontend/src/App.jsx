@@ -9,6 +9,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import AddVenue from './pages/AddVenue';
 import ManageVenues from './pages/ManageVenues';
 import EntranceMonitor from './pages/EntranceMonitor';
+import AddInvigilator from './pages/AddInvigilator';
+import InvigilatorHeader from './components/InvigilatorHeader';
 
 
 function App() {
@@ -28,6 +30,7 @@ function App() {
           <Route path="/add-venue" element={<AddVenue />} />
           <Route path="/manage-venues" element={<ManageVenues />} />
           <Route path="/EntranceMonitor" element={<EntranceMonitor />} />
+          <Route path="/add-invigilator" element={<AddInvigilator />} />
         </Routes>
       </div>
     </BrowserRouter>

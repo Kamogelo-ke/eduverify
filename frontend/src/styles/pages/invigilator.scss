@@ -1,0 +1,45 @@
+@use "../base/variables" as *;
+@use "../base/colors" as *;
+
+.invigilator-card {
+  max-width: 600px;
+  margin: 0 auto;
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $tut-blue;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding: 0;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .card-content {
+    padding: 30px;
+  }
+
+  .btn-submit {
+    margin-top: 20px;
+    width: 100%;
+    background-color: $tut-blue; // Using your variable
+    color: $white;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: $tut-dark-blue; // Using your dark blue variable
+    }
+  }
+}
