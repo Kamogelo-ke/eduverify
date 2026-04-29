@@ -12,6 +12,10 @@ from fastapi import FastAPI, Depends
 from starlette.middleware.cors import CORSMiddleware
 from database import session_local, init_db, engine, get_db
 
+from api.auth import router as auth_router
+from models import user
+from api.access import router as access_router
+from api.attendance import router as attendance_router
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
@@ -43,3 +47,8 @@ async def root(db: AsyncSession = Depends(get_db)):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8008)
+
+
+app.include_router(auth_router)
+app.include_router(access_router)
+app.include_router(attendance_router)
