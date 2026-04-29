@@ -6,11 +6,15 @@ when the script is executed directly. Uvicorn provides high performance
 for serving asynchronous Python web applications.
 """
 from contextlib import asynccontextmanager
+import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 from fastapi import FastAPI, Depends
 from starlette.middleware.cors import CORSMiddleware
 from database import session_local, init_db, engine, get_db
+from api import (
+      audit, health, sis, auth
+)
 
 
 @asynccontextmanager
@@ -35,6 +39,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(audit.router, prefix="/api/v1")
+app.include_router(health.router, prefix="/api/v1")
+app.include_router(sis.router, prefix="/api/v1")
+
 @app.get("/")
 async def root(db: AsyncSession = Depends(get_db)):
     """Health check endpoint to verify backend is running."""
@@ -42,4 +52,4 @@ async def root(db: AsyncSession = Depends(get_db)):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8008)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
