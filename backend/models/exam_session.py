@@ -16,13 +16,13 @@ class SessionStatus(str, enum.Enum):
 class ExamSession(Base):
     __tablename__ = "exam_sessions"
     
-    SessionID = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     ModuleCode = Column(String(20), nullable=False, index=True)
     ModuleName = Column(String(200), nullable=False)
     
     # Venue information
     VenueLocation = Column(String(255), nullable=False)
-    VenueID = Column(Integer, ForeignKey("venues.VenueID"), nullable=False)
+    VenueID = Column(Integer, ForeignKey("venues.id"), nullable=False)
     
     # Schedule
     ExamDate = Column(Date, nullable=False)
@@ -31,7 +31,7 @@ class ExamSession(Base):
     
     # Session management
     Status = Column(Enum(SessionStatus), default=SessionStatus.SCHEDULED, nullable=False)
-    CreatedBy = Column(Integer, ForeignKey("system_users.UserID"), nullable=False)
+    CreatedBy = Column(Integer, ForeignKey("system_users.id"), nullable=False)
     
     # Capacity and attendance
     MaxCapacity = Column(Integer, default=100)

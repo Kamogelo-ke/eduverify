@@ -7,7 +7,7 @@ from database import Base
 class Venue(Base):
     __tablename__ = "venues"
     
-    VenueID = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     VenueName = Column(String(255), unique=True, nullable=False)
     Campus = Column(String(100), nullable=False)
     Location = Column(String(255), nullable=False)

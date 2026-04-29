@@ -159,7 +159,7 @@ async def sync_cache(
         
         # Sync student biometric hashes
         student_query = await db.execute(
-            text("SELECT StudentID, BiometricHash FROM students WHERE BiometricHash IS NOT NULL")
+            text("SELECT id, BiometricHash FROM students WHERE BiometricHash IS NOT NULL")
         )
         students = student_query.fetchall()
         synced_count = 0
@@ -176,7 +176,7 @@ async def sync_cache(
         # Sync active exam sessions
         session_query = await db.execute(
             text("""
-                SELECT SessionID, ModuleCode, VenueLocation, StartTime, EndTime 
+                SELECT id, ModuleCode, VenueLocation, StartTime, EndTime 
                 FROM exam_sessions 
                 WHERE Status = 'active'
             """)

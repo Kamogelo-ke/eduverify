@@ -10,7 +10,7 @@ class StudentRepository:
     
     async def get_by_id(self, student_id: int) -> Optional[Student]:
         """Get student by ID"""
-        query = select(Student).where(Student.StudentID == student_id)
+        query = select(Student).where(Student.id == student_id)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
     
@@ -36,14 +36,14 @@ class StudentRepository:
     
     async def update(self, student_id: int, update_data: Dict[str, Any]) -> Optional[Student]:
         """Update student information"""
-        query = update(Student).where(Student.StudentID == student_id).values(**update_data).returning(Student)
+        query = update(Student).where(Student.id == student_id).values(**update_data).returning(Student)
         result = await self.db.execute(query)
         await self.db.commit()
         return result.scalar_one_or_none()
     
     async def delete_face_data(self, student_id: int) -> bool:
         """Delete face biometric data (POPIA compliance)"""
-        query = update(Student).where(Student.StudentID == student_id).values(
+        query = update(Student).where(Student.id == student_id).values(
             BiometricHash=None,
             FaceImageHash=None
         )
@@ -53,7 +53,7 @@ class StudentRepository:
     
     async def update_biometric_hash(self, student_id: int, biometric_hash: str) -> bool:
         """Update student's biometric hash"""
-        query = update(Student).where(Student.StudentID == student_id).values(
+        query = update(Student).where(Student.id == student_id).values(
             BiometricHash=biometric_hash
         )
         result = await self.db.execute(query)

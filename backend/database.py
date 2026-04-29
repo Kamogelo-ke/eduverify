@@ -26,21 +26,12 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 # Create async engine with tuned pool settings
 engine = create_async_engine(
     DATABASE_URL,
-<<<<<<< HEAD
     echo=True,           # enable SQL logging (set to False in production)
     pool_size=5,         # number of persistent connections
     max_overflow=20,     # allow temporary extra connections
     pool_timeout=60,     # wait 60s before TimeoutError
     pool_recycle=1800,   # recycle every 30 minutes
     pool_pre_ping=True,  # check connection health before use
-=======
-    echo=True,  # enable excessive logging
-    pool_size=5,  # number of persistent connections
-    max_overflow=20,  # allow temporary extra connections
-    pool_timeout=60,  # wait 60s before TimeoutError
-    pool_recycle=1800,  # recycle every 30 minutes
-    pool_pre_ping=True,  # check connection health status
->>>>>>> e274ac80f94879594e9ee0b479bacbb515ffc40b
 )
 
 # Async session maker
@@ -59,14 +50,9 @@ async def init_db():
     Initialize database and create all tables.
     Should be called at startup once.
     """
-<<<<<<< HEAD
-    import models.models  # ensures all models are registered on Base
-
-=======
-    from models import (
-        student, access_log, ai_metrics, exam_session, system_user, venue, verification_log
-    )
->>>>>>> e274ac80f94879594e9ee0b479bacbb515ffc40b
+      # ensures all models are registered on Base
+    from models import access_log, ai_metrics, attendence_register, biometric_profile, exam_session, student, system_user, venue, verification_attempt, verification_log
+    print(Base.metadata.tables.keys())
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -81,8 +67,4 @@ async def get_db():
         try:
             yield session
         finally:
-<<<<<<< HEAD
             await session.close()
-=======
-            await session.close()
->>>>>>> e274ac80f94879594e9ee0b479bacbb515ffc40b

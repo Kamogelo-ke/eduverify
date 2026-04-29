@@ -78,7 +78,7 @@ INSERT INTO exam_sessions (ModuleCode, ModuleName, VenueLocation, ExamDate, Star
 
 -- 5. VERIFICATION LOGS
 -- ============================================
-INSERT INTO verification_logs (StudentID, SessionID, DeviceID, VerificationOutcome, DigitalSignature, VenueLocation, AttemptNumber, FaceMatchScore, LivenessScore, Timestamp) VALUES
+INSERT INTO verification_logs (id, id, DeviceID, VerificationOutcome, DigitalSignature, VenueLocation, AttemptNumber, FaceMatchScore, LivenessScore, Timestamp) VALUES
 -- Successful verifications
 (1, 1, 'CAM_001', 'Success', 'SIG_' || md5(random()::text), 'Main Exam Hall A', 1, 0.95, 0.92, NOW() - INTERVAL '2 hours'),
 (2, 1, 'CAM_001', 'Success', 'SIG_' || md5(random()::text), 'Main Exam Hall A', 1, 0.87, 0.89, NOW() - INTERVAL '1 hour'),
@@ -112,7 +112,7 @@ INSERT INTO verification_logs (StudentID, SessionID, DeviceID, VerificationOutco
 
 -- 6. ACCESS LOGS
 -- ============================================
-INSERT INTO access_logs (UserID, StudentID, SessionID, Action, TTSFeedbackSent, Reason, Timestamp) VALUES
+INSERT INTO access_logs (id, id, id, Action, TTSFeedbackSent, Reason, Timestamp) VALUES
 -- Grants by system
 (1, 1, 1, 'grant', 1, 'Face verification successful', NOW() - INTERVAL '2 hours'),
 (1, 2, 1, 'grant', 1, 'Face verification successful', NOW() - INTERVAL '1 hour'),
@@ -136,7 +136,7 @@ INSERT INTO access_logs (UserID, StudentID, SessionID, Action, TTSFeedbackSent, 
 
 -- 7. ATTENDANCE REGISTERS
 -- ============================================
-INSERT INTO attendance_registers (SessionID, StudentID, MarkedBy, VerificationLogID, Status, MarkedAt) VALUES
+INSERT INTO attendance_registers (id, id, MarkedBy, id, Status, MarkedAt) VALUES
 -- Session 1 attendance
 (1, 1, 1, 1, 'present', NOW() - INTERVAL '2 hours'),
 (1, 2, 1, 2, 'present', NOW() - INTERVAL '1 hour'),
@@ -165,7 +165,7 @@ INSERT INTO attendance_registers (SessionID, StudentID, MarkedBy, VerificationLo
 
 -- 8. AI METRICS
 -- ============================================
-INSERT INTO ai_metrics (SessionID, FAR, FRR, AvgProcessTime, TotalProcessed, YOLOv8_Accuracy, ArcFace_MatchingTime, DINOv2_LivenessAccuracy, GPU_Utilization, Timestamp) VALUES
+INSERT INTO ai_metrics (id, FAR, FRR, AvgProcessTime, TotalProcessed, YOLOv8_Accuracy, ArcFace_MatchingTime, DINOv2_LivenessAccuracy, GPU_Utilization, Timestamp) VALUES
 (1, 0.023, 0.045, 12.5, 150, 0.96, 8.2, 0.94, 45.5, NOW()),
 (2, 0.018, 0.038, 11.8, 120, 0.97, 7.9, 0.95, 42.3, NOW()),
 (3, 0.031, 0.052, 13.2, 80, 0.95, 8.5, 0.93, 48.1, NOW()),
@@ -177,7 +177,7 @@ INSERT INTO ai_metrics (SessionID, FAR, FRR, AvgProcessTime, TotalProcessed, YOL
 CREATE TABLE IF NOT EXISTS manual_overrides (
     OverrideID SERIAL PRIMARY KEY,
     LogID INTEGER REFERENCES verification_logs(LogID),
-    InvigilatorID INTEGER REFERENCES system_users(UserID),
+    InvigilatorID INTEGER REFERENCES system_users(id),
     OverrideReason VARCHAR(500),
     Timestamp TIMESTAMP DEFAULT NOW()
 );

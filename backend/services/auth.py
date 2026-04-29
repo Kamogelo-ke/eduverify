@@ -55,7 +55,7 @@ class AuthService:
             
             audit_logger.log(
                 event="Failed login attempt - wrong password",
-                user_id=user.UserID,
+                user_id=user.id,
                 action="LOGIN_FAILED",
                 details={"ip": client_ip, "attempts": user.FailedLoginAttempts}
             )
@@ -69,8 +69,8 @@ class AuthService:
         await self.db.commit()
         
         # Generate tokens
-        access_token = self._create_access_token(user.UserID)
-        refresh_token = self._create_refresh_token(user.UserID)
+        access_token = self._create_access_token(user.id)
+        refresh_token = self._create_refresh_token(user.id)
         
         # Store refresh token hash
         user.set_refresh_token(refresh_token)
@@ -78,7 +78,7 @@ class AuthService:
         
         audit_logger.log(
             event="User logged in successfully",
-            user_id=user.UserID,
+            user_id=user.id,
             action="LOGIN_SUCCESS",
             details={"ip": client_ip, "role": user.Role.value}
         )
@@ -95,7 +95,7 @@ class AuthService:
         Invalidate user's refresh token
         """
         query = update(SystemUser).where(
-            SystemUser.UserID == user_id
+            SystemUser.id == user_id
         ).values(RefreshTokenHash=None)
         
         await self.db.execute(query)
@@ -126,7 +126,7 @@ class AuthService:
                 return {"success": False, "message": "Invalid token"}
             
             # Get user
-            query = select(SystemUser).where(SystemUser.UserID == user_id)
+            query = select(SystemUser).where(SystemUser.id == user_id)
             result = await self.db.execute(query)
             user = result.scalar_one_or_none()
             
@@ -160,7 +160,7 @@ class AuthService:
         Change user password
         """
         # Get user
-        query = select(SystemUser).where(SystemUser.UserID == user_id)
+        query = select(SystemUser).where(SystemUser.id == user_id)
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
         
@@ -218,7 +218,7 @@ class AuthService:
         
         audit_logger.log(
             event="Password reset requested",
-            user_id=user.UserID,
+            user_id=user.id,
             action="PASSWORD_RESET_REQUEST"
         )
         
@@ -246,7 +246,7 @@ class AuthService:
         Verify 2FA code
         """
         # Get user
-        query = select(SystemUser).where(SystemUser.UserID == user_id)
+        query = select(SystemUser).where(SystemUser.id == user_id)
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
         

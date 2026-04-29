@@ -18,7 +18,7 @@ class UserRole(str, enum.Enum):
 class SystemUser(Base):
     __tablename__ = "system_users"
     
-    UserID = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     Username = Column(String(100), unique=True, nullable=False, index=True)
     Email = Column(String(255), unique=True, nullable=False, index=True)
     PasswordHash = Column(String(255), nullable=False)
@@ -43,7 +43,7 @@ class SystemUser(Base):
     # Audit
     CreatedAt = Column(DateTime, server_default=func.now())
     UpdatedAt = Column(DateTime, onupdate=func.now())
-    CreatedBy = Column(Integer, nullable=True)  # UserID who created this user
+    CreatedBy = Column(Integer, nullable=True)  # id who created this user
     
     # Relationships
     # access_logs : Mapped["AccessLog"]= relationship("AccessLog", back_populates="user")

@@ -1,0 +1,13 @@
+// src/styles/_variables.scss
+@use "colors" as *;
+
+// Spacing
+$header-padding: 10px 40px;
+$content-padding: 30px 60px;
+$footer-padding: 15px 40px;
+
+// Mixin for the TUT gradient borders
+@mixin tut-gradient-border($side) {
+  border-#{$side}: 5px solid;
+  border-image: linear-gradient(to right, $tut-blue, $tut-red, $tut-yellow, $tut-red) 1;
+}

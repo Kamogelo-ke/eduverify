@@ -14,12 +14,12 @@ class AttendanceStatus(str, enum.Enum):
 class AttendanceRegister(Base):
     __tablename__ = "attendance_registers"
     
-    RegisterID = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    SessionID = Column(Integer, ForeignKey("exam_sessions.SessionID"), nullable=False)
-    StudentID = Column(Integer, ForeignKey("students.StudentID"), nullable=False)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    session_id = Column(Integer, ForeignKey("exam_sessions.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     
     MarkedAt = Column(DateTime, server_default=func.now(), nullable=False)
-    VerificationLogID = Column(Integer, ForeignKey("verification_logs.LogID"), nullable=True)
+    log_id = Column(Integer, ForeignKey("verification_logs.LogID"), nullable=True)
     
     Status = Column(Enum(AttendanceStatus), default=AttendanceStatus.PRESENT)
     Notes = Column(String(500), nullable=True)
@@ -29,5 +29,5 @@ class AttendanceRegister(Base):
     # student: Mapped["Student"] = relationship("Student", back_populates="attendance_records")
    
     __table_args__ = (
-        Index('idx_unique_student_session', 'SessionID', 'StudentID', unique=True),
+        Index('idx_unique_student_session', 'id', 'id', unique=True),
     )

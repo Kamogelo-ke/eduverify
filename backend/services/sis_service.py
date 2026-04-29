@@ -28,7 +28,7 @@ class SISService:
         """Check if student is eligible to write exam"""
         try:
             # Get exam session details
-            session_query = select(ExamSession).where(ExamSession.SessionID == session_id)
+            session_query = select(ExamSession).where(ExamSession.id == session_id)
             session_result = await db.execute(session_query)
             session = session_result.scalar_one_or_none()
             
@@ -42,7 +42,7 @@ class SISService:
                 }
             
             # Get student info
-            student_query = select(Student).where(Student.StudentID == student_id)
+            student_query = select(Student).where(Student.id == student_id)
             student_result = await db.execute(student_query)
             student = student_result.scalar_one_or_none()
             

@@ -13,10 +13,10 @@ class AccessAction(str, enum.Enum):
 class AccessLog(Base):
     __tablename__ = "access_logs"
     
-    AccessLogID = Column(Integer, primary_key=True, index=True)
-    UserID = Column(Integer, ForeignKey("system_users.UserID"), nullable=False)
-    StudentID = Column(Integer, ForeignKey("students.StudentID"), nullable=False)
-    SessionID = Column(Integer, ForeignKey("exam_sessions.SessionID"), nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("system_users.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    session_id = Column(Integer, ForeignKey("exam_sessions.id"), nullable=False)
     Action = Column(Enum(AccessAction), nullable=False)
     Timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     TTSFeedbackSent = Column(Integer, default=0)  # 0=False, 1=True

@@ -11,9 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 from fastapi import FastAPI, Depends
 from starlette.middleware.cors import CORSMiddleware
+from endpoints import audit, health, sis
 from database import session_local, init_db, engine, get_db
-from api import (
-      audit, health, sis, auth
+from endpoints import (
+      auth, access, admin, audit, deps, face, health, sis, students
 )
 
 
@@ -44,6 +45,11 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(audit.router, prefix="/api/v1")
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(sis.router, prefix="/api/v1")
+app.include_router(access.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
+# app.include_router(deps.router, prefix="/api/v1")
+app.include_router(face.router, prefix="/api/v1")
+app.include_router(students.router, prefix="/api/v1")
 
 @app.get("/")
 async def root(db: AsyncSession = Depends(get_db)):

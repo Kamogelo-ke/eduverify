@@ -7,8 +7,8 @@ from database import Base
 class AIMetrics(Base):
     __tablename__ = "ai_metrics"
     
-    MetricID = Column(Integer, primary_key=True, index=True)
-    SessionID = Column(Integer, ForeignKey("exam_sessions.SessionID"), nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("exam_sessions.id"), nullable=False)
     FAR = Column(Float, nullable=False)  # False Acceptance Rate
     FRR = Column(Float, nullable=False)  # False Rejection Rate
     AvgProcessTime = Column(Float, nullable=False)  # seconds

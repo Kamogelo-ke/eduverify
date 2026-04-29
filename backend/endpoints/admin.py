@@ -23,10 +23,11 @@ from core.security import hash_password, generate_temp_password
 from core.email import send_temporary_password_email
 from database import get_db
 from endpoints.deps import require_admin, require_invigilator_or_admin
-from models.models import (
-    BiometricProfile, ExamSession, Student, User, UserRole,
-    VerificationAttempt, VerificationOutcome,
-)
+from models.biometric_profile import BiometricProfile
+from models.exam_session import ExamSession
+from models.student import Student
+from models.system_user import SystemUser
+from models.verification_attempt import VerificationAttempt, VerificationOutcome
 from schemas.schemas import (
     AttendanceRegister, AttendanceRegisterEntry,
     ExamSessionCreate, ExamSessionResponse,
@@ -41,7 +42,7 @@ router = APIRouter(prefix="/admin", tags=["Admin Dashboard"])
 @router.get("/stats", response_model=SystemStats,
             summary="Live dashboard metrics")
 async def get_system_stats(
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -109,7 +110,7 @@ async def get_system_stats(
 
 @router.get("/venues", summary="List exam venues with upcoming sessions")
 async def list_venues(
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     now = datetime.now(timezone.utc)
@@ -139,7 +140,7 @@ async def list_venues(
              summary="Create a new exam session")
 async def create_exam_session(
     body: ExamSessionCreate,
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     # Check for venue/time clash
@@ -171,7 +172,7 @@ async def create_exam_session(
     await db.refresh(session)
 
     return ExamSessionResponse(
-        id=session.id,
+        session_id=session.id,
         module_code=session.module_code,
         module_name=session.module_name,
         venue=session.venue,
@@ -190,7 +191,7 @@ async def list_exam_sessions(
     upcoming_only: bool = Query(True),
     venue: Optional[str] = Query(None),
     module_code: Optional[str] = Query(None),
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(ExamSession)
@@ -209,7 +210,7 @@ async def list_exam_sessions(
         granted = sum(1 for a in s.attempts if a.outcome in (
             VerificationOutcome.granted, VerificationOutcome.overridden))
         output.append(ExamSessionResponse(
-            id=s.id,
+            session_id=s.id,
             module_code=s.module_code,
             module_name=s.module_name,
             venue=s.venue,
@@ -232,7 +233,7 @@ async def get_attempt_log(
     student_number: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = (
@@ -278,7 +279,7 @@ async def get_attempt_log(
             summary="Digital attendance register for an exam session")
 async def get_attendance_register(
     session_id: UUID,
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     sess_res = await db.execute(
@@ -327,10 +328,10 @@ async def get_attendance_register(
              summary="Create an admin or invigilator account")
 async def create_user(
     body: UserCreate,
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    dup = await db.execute(select(User).where(User.email == body.email))
+    dup = await db.execute(select(SystemUser).where(SystemUser.email == body.email))
     if dup.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email already registered")
     if body.role not in [r.value for r in UserRole]:
@@ -340,7 +341,7 @@ async def create_user(
     # Generate a secure temporary password — ignore whatever the admin typed
     temp_password = generate_temp_password()
 
-    user = User(
+    user = SystemUser(
         email=body.email,
         full_name=body.full_name,
         hashed_password=hash_password(temp_password),
@@ -373,11 +374,11 @@ async def create_user(
             summary="List all system users")
 async def list_users(
     role: Optional[str] = Query(None),
-    _: User = Depends(require_admin),
+    _: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(User)
+    stmt = select(SystemUser)
     if role:
-        stmt = stmt.where(User.role == role)
-    result = await db.execute(stmt.order_by(User.full_name))
+        stmt = stmt.where(SystemUser.role == role)
+    result = await db.execute(stmt.order_by(SystemUser.full_name))
     return result.scalars().all()

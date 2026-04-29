@@ -1,18 +1,29 @@
  # models/student.py
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, Index
+import enum
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, Index, Enum 
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Mapped, relationship
 from datetime import datetime
 from database import Base
 
+class Gender(str, enum.Enum):
+    male = "male"
+    female = "female"
+    other = "other"
+    prefer_not_to_say = "prefer_not_to_say"
+    
+
 class Student(Base):
     __tablename__ = "students"
     
-    StudentID = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     FirstName = Column(String(100), nullable=False)
     LastName = Column(String(100), nullable=False)
     Email = Column(String(255), unique=True, nullable=False, index=True)
     StudentNumber = Column(String(50), unique=True, nullable=False, index=True)
+    programme = Column(String(255), nullable=True)
+    year_of_study = Column(Integer, nullable=True)
+    gender = Column(Enum(Gender), nullable=True)
     
     # Biometric data (POPIA compliant - hash only)
     BiometricHash = Column(String(512), nullable=True)  # One-way hash of face features

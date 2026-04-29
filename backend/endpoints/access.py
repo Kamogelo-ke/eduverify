@@ -26,7 +26,7 @@ async def grant_access(
     result = await service.grant_access(
         student_id=request.student_id,
         session_id=request.session_id,
-        granted_by=current_user.UserID,
+        granted_by=current_user.id,
         reason=request.reason
     )
     
@@ -52,7 +52,7 @@ async def deny_access(
     result = await service.deny_access(
         student_id=request.student_id,
         session_id=request.session_id,
-        denied_by=current_user.UserID,
+        denied_by=current_user.id,
         reason=request.reason
     )
     
@@ -79,7 +79,7 @@ async def manual_override(
     result = await service.manual_override(
         student_id=request.student_id,
         session_id=request.session_id,
-        overridden_by=current_user.UserID,
+        overridden_by=current_user.id,
         reason=request.reason
     )
     

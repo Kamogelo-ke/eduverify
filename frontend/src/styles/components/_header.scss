@@ -1,0 +1,95 @@
+@use "../base/colors" as *;
+
+.main-nav {
+  background: linear-gradient(to bottom, #00529B, #003d73); // Main TUT Blue gradient
+  color: white;
+  padding: 8px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+
+  // --- The Transition Line ---
+  // Replaces the solid 4px red border with the smooth branding transition
+  border-bottom: 5px solid;
+  border-image: linear-gradient(
+    to right, 
+    #00529B, // Blue
+    #ED1C24, // Red
+    #FFD700, // Yellow
+    #ED1C24  // Red
+  ) 1;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    img { 
+      height: 48px; // Slightly larger to match image scale
+      background: white; 
+      padding: 3px; 
+      border-radius: 4px; 
+    }
+
+    .text {
+      h1 { 
+        font-size: 1.25rem; 
+        margin: 0; 
+        font-weight: 700; 
+        letter-spacing: -0.5px;
+      }
+      p { 
+        font-size: 0.8rem; 
+        color: #FFD700; // TUT Yellow
+        margin: 0; 
+        font-style: italic; 
+        font-weight: 500;
+      }
+      .motto { 
+        font-size: 0.7rem; 
+        display: block; 
+        margin-top: -2px; 
+        opacity: 0.9;
+      }
+    }
+  }
+
+  .nav-actions {
+    display: flex;
+    gap: 25px; // Spaced out like the image
+
+    button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover { 
+        color: #FFD700; 
+        opacity: 1;
+      }
+
+      // The distinct yellow Admin button
+      &.admin-pill {
+        background: #FFD700;
+        color: #000;
+        padding: 6px 16px;
+        border-radius: 4px;
+        font-weight: 800;
+        text-transform: capitalize;
+        
+        &:hover {
+          background: #e6c200;
+          color: #000;
+        }
+      }
+    }
+  }
+}

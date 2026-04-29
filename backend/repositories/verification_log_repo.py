@@ -51,7 +51,7 @@ class VerificationLogRepository:
     ) -> List[VerificationLog]:
         """Get logs for a specific student"""
         query = select(VerificationLog).where(
-            VerificationLog.StudentID == student_id
+            VerificationLog.id == student_id
         ).order_by(VerificationLog.Timestamp.desc()).limit(limit)
         
         result = await self.db.execute(query)
@@ -119,9 +119,9 @@ class VerificationLogRepository:
             ExamSession.ModuleCode,
             ExamSession.VenueLocation
         ).join(
-            Student, VerificationLog.StudentID == Student.StudentID
+            Student, VerificationLog.id == Student.id
         ).join(
-            ExamSession, VerificationLog.SessionID == ExamSession.SessionID
+            ExamSession, VerificationLog.id == ExamSession.id
         ).where(
             and_(
                 func.date(VerificationLog.Timestamp) >= start_date,

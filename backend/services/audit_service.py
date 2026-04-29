@@ -30,8 +30,8 @@ class AuditService:
         
         # Create log entry
         log_dict = {
-            "StudentID": log_data.student_id,
-            "SessionID": log_data.session_id,
+            "id": log_data.student_id,
+            "id": log_data.session_id,
             "DeviceID": log_data.device_id,
             "VerificationOutcome": log_data.outcome.value,
             "DigitalSignature": log_data.digital_signature,
@@ -73,7 +73,7 @@ class AuditService:
         """Get logs for a venue with student names"""
         
         query = select(VerificationLog, Student).join(
-            Student, VerificationLog.StudentID == Student.StudentID
+            Student, VerificationLog.id == Student.id
         ).where(
             VerificationLog.VenueLocation.ilike(f"%{venue}%")
         )
@@ -94,7 +94,7 @@ class AuditService:
             logs.append({
                 "log_id": verification_log.LogID,
                 "student_name": f"{student.FirstName} {student.LastName}",
-                "student_id": verification_log.StudentID,
+                "student_id": verification_log.id,
                 "timestamp": verification_log.Timestamp,
                 "outcome": verification_log.VerificationOutcome.value,
                 "device_id": verification_log.DeviceID,
@@ -116,7 +116,7 @@ class AuditService:
         """Get all logs for a student with statistics"""
         
         # Get student info
-        student_query = select(Student).where(Student.StudentID == student_id)
+        student_query = select(Student).where(Student.id == student_id)
         student_result = await self.db.execute(student_query)
         student = student_result.scalar_one_or_none()
         
@@ -132,7 +132,7 @@ class AuditService:
         
         # Get logs
         logs_query = select(VerificationLog).where(
-            VerificationLog.StudentID == student_id
+            VerificationLog.id == student_id
         ).order_by(VerificationLog.Timestamp.desc()).limit(limit)
         
         logs_result = await self.db.execute(logs_query)
@@ -149,7 +149,7 @@ class AuditService:
             "logs": [
                 {
                     "timestamp": log.Timestamp,
-                    "session_id": log.SessionID,
+                    "session_id": log.id,
                     "outcome": log.VerificationOutcome.value,
                     "device_id": log.DeviceID,
                     "attempt_number": log.AttemptNumber
@@ -232,7 +232,7 @@ class AuditService:
             Student.FirstName,
             Student.LastName,
         ).join(
-            Student, VerificationLog.StudentID == Student.StudentID
+            Student, VerificationLog.id == Student.id
         ).where(
             and_(
                 func.date(VerificationLog.Timestamp) >= start_date,

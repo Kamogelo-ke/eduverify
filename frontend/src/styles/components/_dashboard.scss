@@ -1,0 +1,15 @@
+@use "../base/variables" as *;
+
+.dashboard-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: white;
+  font-family: 'Segoe UI', Roboto, Arial;
+}
+
+.content-area {
+  flex: 1;
+  padding: 30px 60px;
+  background: $background;
+}

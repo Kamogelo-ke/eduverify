@@ -22,10 +22,11 @@ from core.config import settings
 from core.security import encrypt_embedding
 from database import get_db
 from endpoints.deps import get_current_user, require_admin, require_invigilator_or_admin
-from models.models import (
-    BiometricProfile, ExamSession, Student, User,
-    VerificationAttempt, VerificationOutcome,
-)
+from models.biometric_profile import BiometricProfile
+from models.exam_session import ExamSession
+from models.student import Student
+from models.system_user import SystemUser
+from models.verification_attempt import VerificationAttempt, VerificationOutcome
 from schemas.schemas import (
     EnrollmentResponse, FaceCaptureResponse, LivenessResult,
     OverrideRequest, OverrideResponse, VerificationResult,
@@ -56,7 +57,7 @@ async def _read_image(file: UploadFile) -> bytes:
              summary="Detect face in frame and return quality score")
 async def capture_face(
     image: UploadFile = File(...),
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
 ):
     image_bytes = await _read_image(image)
     svc = get_face_service()
@@ -75,7 +76,7 @@ async def capture_face(
              summary="Run DINOv2 PAD anti-spoofing check")
 async def liveness_check(
     image: UploadFile = File(...),
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
 ):
     image_bytes = await _read_image(image)
     svc = get_face_service()
@@ -99,7 +100,7 @@ async def verify_student(
     student_number: Optional[str] = Form(None),
     exam_session_id: Optional[str] = Form(None),
     terminal_id: Optional[str] = Form(None),
-    current_user: User = Depends(require_invigilator_or_admin),
+    current_user: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     t_start = time.perf_counter()
@@ -274,7 +275,7 @@ async def verify_student(
 async def enroll_face(
     image: UploadFile = File(...),
     student_number: str = Form(...),
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await db.execute(
@@ -341,7 +342,7 @@ async def enroll_face(
              summary="Invigilator manual override of a failed attempt")
 async def override_attempt(
     body: OverrideRequest,
-    current_user: User = Depends(require_invigilator_or_admin),
+    current_user: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     res = await db.execute(

@@ -40,7 +40,7 @@ async def get_current_user(
         )
     
     # Get user from database
-    query = select(SystemUser).where(SystemUser.UserID == user_id)
+    query = select(SystemUser).where(SystemUser.id == user_id)
     result = await db.execute(query)
     user = result.scalar_one_or_none()
     

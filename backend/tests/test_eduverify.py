@@ -3,7 +3,7 @@ EduVerify test suite
 Tests: authentication, student CRUD, face enrolment, verification pipeline, admin dashboard.
 Run: pytest tests/ -v
 """
-from app.main import app
+from main import app
 import io
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -15,9 +15,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
-from app.core.security import create_access_token, encrypt_embedding, decrypt_embedding, hash_password
-from app.db.session import get_db
-from app.models.models import Base, Student, User, UserRole, BiometricProfile, ExamSession
+from core.security import create_access_token, encrypt_embedding, decrypt_embedding, hash_password
+from database import get_db, Base
+from models.biometric_profile import BiometricProfile
+from models.exam_session import ExamSession
+from models.student import Student
+from models.system_user import SystemUser, UserRole
+from models.verification_attempt import VerificationAttempt, VerificationOutcome
 
 SQLALCHEMY_TEST_URL = "sqlite:///./test_eduverify.db"
 engine = create_engine(SQLALCHEMY_TEST_URL, connect_args={
@@ -69,7 +73,7 @@ def client():
 
 @pytest.fixture
 def admin_user(db):
-    user = User(
+    user = SystemUser(
         id=uuid.uuid4(),
         email="admin@tut.ac.za",
         full_name="Admin User",
@@ -84,7 +88,7 @@ def admin_user(db):
 
 @pytest.fixture
 def invigilator_user(db):
-    user = User(
+    user = SystemUser(
         id=uuid.uuid4(),
         email="invig@tut.ac.za",
         full_name="Invigilator User",
@@ -278,7 +282,7 @@ class TestStudentProfiles:
 class TestFaceRecognition:
     def _mock_svc(self, detected=True, quality=0.9, liveness_live=True, liveness_conf=0.95,
                   similarity=0.85):
-        from app.services.face_service import DetectionResult, LivenessResult
+        from services.face_service import DetectionResult, LivenessResult
         import numpy as np
         svc = MagicMock()
         svc.detect_and_align.return_value = DetectionResult(
@@ -482,7 +486,7 @@ class TestSecurity:
 
     def test_access_token_structure(self, admin_user):
         token = create_access_token(str(admin_user.id), "admin")
-        from app.core.security import decode_token
+        from core.security import decode_token
         payload = decode_token(token)
         assert payload["role"] == "admin"
         assert payload["type"] == "access"

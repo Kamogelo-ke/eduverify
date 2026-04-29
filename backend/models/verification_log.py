@@ -15,8 +15,8 @@ class VerificationLog(Base):
     __tablename__ = "verification_logs"
     
     LogID = Column(Integer, primary_key=True, index=True)
-    StudentID = Column(Integer, ForeignKey("students.StudentID"), nullable=False)
-    SessionID = Column(Integer, ForeignKey("exam_sessions.SessionID"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    session_id = Column(Integer, ForeignKey("exam_sessions.id"), nullable=False)
     Timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     DeviceID = Column(String(255), nullable=False)
     VerificationOutcome = Column(Enum(VerificationOutcome), nullable=False)

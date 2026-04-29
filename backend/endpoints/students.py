@@ -20,7 +20,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
 from endpoints.deps import require_admin, require_invigilator_or_admin
-from models.models import BiometricProfile, Student, User
+from models.biometric_profile import BiometricProfile
+from models.exam_session import ExamSession
+from models.student import Student
+from models.system_user import SystemUser
+from models.verification_attempt import VerificationAttempt, VerificationOutcome
 from schemas.schemas import (
     StudentCreate, StudentListResponse, StudentResponse, StudentUpdate,
 )
@@ -53,7 +57,7 @@ def _to_response(student: Student) -> StudentResponse:
              summary="Register a new student record")
 async def register_student(
     body: StudentCreate,
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     # Uniqueness checks
@@ -92,7 +96,7 @@ async def list_students(
     is_active: Optional[bool] = Query(True),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Student)
@@ -134,7 +138,7 @@ async def list_students(
             summary="Look up student by student number")
 async def get_student_by_number(
     student_number: str,
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
@@ -151,7 +155,7 @@ async def get_student_by_number(
 @router.get("/{student_id}", response_model=StudentResponse, summary="Get a single student record")
 async def get_student(
     student_id: UUID,
-    _: User = Depends(require_invigilator_or_admin),
+    _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Student).where(Student.id == student_id))
@@ -167,7 +171,7 @@ async def get_student(
 async def update_student(
     student_id: UUID,
     body: StudentUpdate,
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(Student).where(Student.id == student_id))
@@ -190,7 +194,7 @@ async def update_student(
 async def record_consent(
     student_id: UUID,
     consented: bool = Query(..., description="True = consent given, False = consent withdrawn"),
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -220,7 +224,7 @@ async def record_consent(
                summary="Delete biometric data — POPIA right to erasure")
 async def delete_biometric(
     student_id: UUID,
-    current_user: User = Depends(require_admin),
+    current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
     """

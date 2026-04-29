@@ -24,7 +24,7 @@ async def log_verification_attempt(
 ):
     """Log a facial recognition verification attempt"""
     service = AuditService(db)
-    result = await service.log_verification_attempt(log_data, current_user.UserID)
+    result = await service.log_verification_attempt(log_data, current_user.id)
     return result
 
 @router.get("/session/{venue}")
@@ -85,8 +85,8 @@ async def export_logs(
                 {
                     "timestamp": log[0].Timestamp,
                     "student_name": f"{log[1]} {log[2]}",
-                    "student_id": log[0].StudentID,
-                    "session_id": log[0].SessionID,
+                    "student_id": log[0].id,
+                    "session_id": log[0].id,
                     "outcome": log[0].VerificationOutcome.value,
                     "device_id": log[0].DeviceID,
                     "digital_signature": log[0].DigitalSignature
@@ -108,8 +108,8 @@ async def export_logs(
         writer.writerow([
             log[0].Timestamp,
             f"{log[1]} {log[2]}",
-            log[0].StudentID,
-            log[0].SessionID,
+            log[0].id,
+            log[0].id,
             log[0].VerificationOutcome.value,
             log[0].DeviceID,
             log[0].DigitalSignature

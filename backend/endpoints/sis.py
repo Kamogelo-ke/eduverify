@@ -64,7 +64,7 @@ router = APIRouter(prefix="/sis", tags=["SIS Integration"])
 #                 venue_location="SIS_API",
 #                 attempt_number=1
 #             ),
-#             user_id=current_user.UserID
+#             user_id=current_user.id
 #         )
         
 #         return SISEligibilityResponse(**result)
@@ -97,7 +97,7 @@ router = APIRouter(prefix="/sis", tags=["SIS Integration"])
 #                 venue_location="SIS_API",
 #                 attempt_number=1
 #             ),
-#             user_id=current_user.UserID
+#             user_id=current_user.id
 #         )
         
 #         return SISEligibilityResponse(**result)
@@ -208,7 +208,7 @@ router = APIRouter(prefix="/sis", tags=["SIS Integration"])
 #             try:
 #                 # Check if student exists
 #                 check_query = text("""
-#                     SELECT "StudentID" FROM students WHERE "StudentNumber" = :student_number
+#                     SELECT "id" FROM students WHERE "StudentNumber" = :student_number
 #                 """)
 #                 result = await db.execute(check_query, {"student_number": student.get("student_number", f"SIS_{student['id']}")})
 #                 existing = result.fetchone()
@@ -300,7 +300,7 @@ async def get_student_info(
     sis_service = SISService()
     try:
         # First check local database
-        student_query = select(Student).where(Student.StudentID == student_id)
+        student_query = select(Student).where(Student.id == student_id)
         student_result = await db.execute(student_query)
         student = student_result.scalar_one_or_none()
         
@@ -340,7 +340,7 @@ async def check_eligibility_status(
     sis_service = SISService()
     try:
         # Get student info
-        student_query = select(Student).where(Student.StudentID == student_id)
+        student_query = select(Student).where(Student.id == student_id)
         student_result = await db.execute(student_query)
         student = student_result.scalar_one_or_none()
         
@@ -428,7 +428,7 @@ async def get_exam_schedule(
             "sis_schedule": schedule,
             "local_sessions": [
                 {
-                    "session_id": s.SessionID,
+                    "session_id": s.id,
                     "module_code": s.ModuleCode,
                     "module_name": s.ModuleName,
                     "venue": s.VenueLocation,
@@ -514,7 +514,7 @@ async def check_venue_availability(
             },
             "existing_sessions": [
                 {
-                    "session_id": s.SessionID,
+                    "session_id": s.id,
                     "module_code": s.ModuleCode,
                     "start_time": s.StartTime.strftime("%H:%M"),
                     "end_time": s.EndTime.strftime("%H:%M"),

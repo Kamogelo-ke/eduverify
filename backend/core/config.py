@@ -1,25 +1,22 @@
-<<<<<<< HEAD
-"""
-Application settings loaded from environment variables / .env file.
-All modules import `settings` from here — never read os.environ directly.
-"""
-
+# core/config.py
+from pydantic_settings import BaseSettings
+from typing import List
 import os
-from functools import lru_cache
-from dotenv import load_dotenv
 
-load_dotenv()
-
-
-class Settings:
+class Settings(BaseSettings):
     # App
-    APP_NAME: str = "EduVerify"
+    APP_NAME: str = "EduVerify API"
     APP_VERSION: str = "1.0.0"
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
-
+    
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
-
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", 
+        "postgresql+asyncpg://user:pass@localhost/edverify"
+    )
+    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))
+    
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "change-this-in-production")
     ALGORITHM: str = "HS256"
@@ -47,33 +44,6 @@ class Settings:
     MAIL_SERVER: str = os.getenv("MAIL_SERVER", "smtp.gmail.com")
     MAIL_PORT: int = int(os.getenv("MAIL_PORT", "587"))
     MAIL_ENABLED: bool = os.getenv("MAIL_USERNAME", "") != ""
-
-
-@lru_cache()
-def get_settings() -> Settings:
-    return Settings()
-
-
-settings = get_settings()
-=======
-# core/config.py
-from pydantic_settings import BaseSettings
-from typing import List
-import os
-
-class Settings(BaseSettings):
-    # App
-    APP_NAME: str = "EduVerify API"
-    APP_VERSION: str = "1.0.0"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
-    
-    # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "postgresql+asyncpg://user:pass@localhost/edverify"
-    )
-    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "20"))
     
     # JWT
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-me")
@@ -110,4 +80,3 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 settings = Settings()
->>>>>>> e274ac80f94879594e9ee0b479bacbb515ffc40b

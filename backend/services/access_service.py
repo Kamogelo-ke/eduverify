@@ -53,9 +53,9 @@ class AccessService:
         # Create access log
         transaction_id = str(uuid.uuid4())
         log_data = {
-            "UserID": granted_by,
-            "StudentID": student_id,
-            "SessionID": session_id,
+            "id": granted_by,
+            "id": student_id,
+            "id": session_id,
             "Action": AccessAction.GRANT,
             "TTSFeedbackSent": 1,
             "Reason": reason
@@ -85,7 +85,7 @@ class AccessService:
         return {
             "status": "granted",
             "transaction_id": transaction_id,
-            "access_log_id": access_log.AccessLogID,
+            "access_log_id": access_log.id,
             "timestamp": datetime.now()
         }
     
@@ -103,9 +103,9 @@ class AccessService:
         # Create access log
         transaction_id = str(uuid.uuid4())
         log_data = {
-            "UserID": denied_by,
-            "StudentID": student_id,
-            "SessionID": session_id,
+            "id": denied_by,
+            "id": student_id,
+            "id": session_id,
             "Action": AccessAction.DENY,
             "TTSFeedbackSent": 1,
             "Reason": reason
@@ -115,8 +115,8 @@ class AccessService:
         
         # Create verification log entry
         verification_log = VerificationLog(
-            StudentID=student_id,
-            SessionID=session_id,
+            id=student_id,
+            session_id=session_id,
             DeviceID="ACCESS_CONTROL",
             VerificationOutcome=VerificationOutcome.DENIED_BIOMETRIC_FAIL,
             DigitalSignature=f"DENY_{transaction_id}",
@@ -146,7 +146,7 @@ class AccessService:
         return {
             "status": "denied",
             "transaction_id": transaction_id,
-            "access_log_id": access_log.AccessLogID,
+            "access_log_id": access_log.id,
             "timestamp": datetime.now()
         }
     
@@ -176,9 +176,9 @@ class AccessService:
         # Create access log with override action
         transaction_id = str(uuid.uuid4())
         log_data = {
-            "UserID": overridden_by,
-            "StudentID": student_id,
-            "SessionID": session_id,
+            "id": overridden_by,
+            "id": student_id,
+            "id": session_id,
             "Action": AccessAction.OVERRIDE,
             "TTSFeedbackSent": 1,
             "Reason": reason
@@ -188,8 +188,8 @@ class AccessService:
         
         # Create verification log with manual override outcome
         verification_log = VerificationLog(
-            StudentID=student_id,
-            SessionID=session_id,
+            id=student_id,
+            session_id=session_id,
             DeviceID="MANUAL_OVERRIDE",
             VerificationOutcome=VerificationOutcome.MANUAL_OVERRIDE,
             DigitalSignature=f"OVERRIDE_{transaction_id}",
@@ -223,7 +223,7 @@ class AccessService:
         return {
             "status": "overridden",
             "transaction_id": transaction_id,
-            "access_log_id": access_log.AccessLogID,
+            "access_log_id": access_log.id,
             "override_id": verification_log.LogID,
             "timestamp": datetime.now()
         }
@@ -475,7 +475,7 @@ class AccessService:
         ).where(AccessLog.Timestamp >= datetime.now() - timedelta(days=days))
         
         if session_id:
-            query = query.where(AccessLog.SessionID == session_id)
+            query = query.where(AccessLog.id == session_id)
         
         result = await self.db.execute(query)
         counts = result.one()
@@ -499,7 +499,7 @@ class AccessService:
         # Overrides by invigilator
         overrides_by_invigilator = await self.db.execute(
             select(SystemUser.Username, func.count())
-            .join(AccessLog, AccessLog.UserID == SystemUser.UserID)
+            .join(AccessLog, AccessLog.id == SystemUser.id)
             .where(
                 AccessLog.Action == AccessAction.OVERRIDE,
                 AccessLog.Timestamp >= datetime.now() - timedelta(days=days)
@@ -525,7 +525,7 @@ class AccessService:
     
     async def _get_session(self, session_id: int) -> Optional[ExamSession]:
         """Get exam session by ID"""
-        query = select(ExamSession).where(ExamSession.SessionID == session_id)
+        query = select(ExamSession).where(ExamSession.id == session_id)
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
     
@@ -533,8 +533,8 @@ class AccessService:
     #     """Check if student already marked as attended"""
     #     query = select(func.count()).where(
     #         and_(
-    #             AttendanceRegister.StudentID == student_id,
-    #             AttendanceRegister.SessionID == session_id
+    #             AttendanceRegister.id == student_id,
+    #             AttendanceRegister.id == session_id
     #         )
     #     )
     #     result = await self.db.execute(query)
@@ -545,8 +545,8 @@ class AccessService:
     #     from models.attendance_register import AttendanceRegister, AttendanceStatus
         
     #     attendance = AttendanceRegister(
-    #         StudentID=student_id,
-    #         SessionID=session_id,
+    #         id=student_id,
+    #         session_id=session_id,
     #         MarkedBy=marked_by,
     #         Status=AttendanceStatus.PRESENT
     #     )
@@ -557,8 +557,8 @@ class AccessService:
         """Get remaining verification attempts for student"""
         query = select(func.count()).where(
             and_(
-                VerificationLog.StudentID == student_id,
-                VerificationLog.SessionID == session_id,
+                VerificationLog.id == student_id,
+                VerificationLog.id == session_id,
                 VerificationLog.Timestamp >= datetime.now() - timedelta(hours=1)
             )
         )
@@ -570,8 +570,8 @@ class AccessService:
         """Get last verification attempt timestamp"""
         query = select(VerificationLog.Timestamp).where(
             and_(
-                VerificationLog.StudentID == student_id,
-                VerificationLog.SessionID == session_id
+                VerificationLog.id == student_id,
+                VerificationLog.id == session_id
             )
         ).order_by(VerificationLog.Timestamp.desc()).limit(1)
         
@@ -591,8 +591,8 @@ class AccessService:
         """Log verification attempt"""
         session = await self._get_session(session_id)
         verification_log = VerificationLog(
-            StudentID=student_id,
-            SessionID=session_id,
+            id=student_id,
+            session_id=session_id,
             DeviceID=device_id,
             VerificationOutcome=outcome,
             DigitalSignature=f"{outcome.value}_{datetime.now().timestamp()}",
@@ -608,8 +608,8 @@ class AccessService:
         """Get current attempt number for student"""
         query = select(func.count()).where(
             and_(
-                VerificationLog.StudentID == student_id,
-                VerificationLog.SessionID == session_id
+                VerificationLog.id == student_id,
+                VerificationLog.id == session_id
             )
         )
         result = await self.db.execute(query)

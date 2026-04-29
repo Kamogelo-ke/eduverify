@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import uuid
 from sqlalchemy import select
 from database import session_local, init_db
-from models.models import User, UserRole
+from models.system_user import SystemUser, UserRole
 from core.security import hash_password
 
 
@@ -27,7 +27,7 @@ async def seed():
     async with session_local() as db:
         # Check if admin already exists
         result = await db.execute(
-            select(User).where(User.email == "admin@tut.ac.za")
+            select(SystemUser).where(SystemUser.email == "admin@tut.ac.za")
         )
         existing = result.scalar_one_or_none()
 
@@ -35,7 +35,7 @@ async def seed():
             print(f"Admin already exists: {existing.email}")
             return
 
-        user = User(
+        user = SystemUser(
             id=uuid.uuid4(),
             email="admin@tut.ac.za",
             full_name="Admin User",
