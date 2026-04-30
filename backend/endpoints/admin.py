@@ -11,22 +11,23 @@ POST /admin/users                          — create user account (admin only)
 GET  /admin/users                          — list all system users (admin only)
 """
 
-from datetime import datetime, timezone
+import logging
+from datetime import date, datetime, timezone
 from typing import Optional
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core.security import hash_password, generate_temp_password
 from core.email import send_temporary_password_email
 from database import get_db
 from endpoints.deps import require_admin, require_invigilator_or_admin
 from models.biometric_profile import BiometricProfile
-from models.exam_session import ExamSession
+from models.exam_session import ExamSession, SessionStatus
 from models.student import Student
-from models.system_user import SystemUser
+from models.system_user import SystemUser, UserRole
 from models.verification_attempt import VerificationAttempt, VerificationOutcome
 from schemas.schemas import (
     AttendanceRegister, AttendanceRegisterEntry,
@@ -36,11 +37,47 @@ from schemas.schemas import (
 
 router = APIRouter(prefix="/admin", tags=["Admin Dashboard"])
 
+logger = logging.getLogger(__name__)
+
+
+def _exam_session_to_response(s: ExamSession, total_attempts: int = 0, granted_count: int = 0) -> ExamSessionResponse:
+    """Map ExamSession ORM object to ExamSessionResponse schema."""
+    scheduled_start = datetime.combine(s.ExamDate, s.StartTime) if s.ExamDate and s.StartTime else None
+    scheduled_end = datetime.combine(s.ExamDate, s.EndTime) if s.ExamDate and s.EndTime else None
+    return ExamSessionResponse(
+        id=s.id,
+        module_code=s.ModuleCode,
+        module_name=s.ModuleName,
+        venue=s.VenueLocation,
+        campus="",
+        scheduled_start=scheduled_start,
+        scheduled_end=scheduled_end,
+        created_at=s.CreatedAt,
+        total_attempts=total_attempts,
+        granted_count=granted_count,
+    )
+
+
+def _user_to_response(u: SystemUser) -> UserResponse:
+    return UserResponse(
+        id=u.id,
+        email=u.Email,
+        full_name=u.FullName,
+        role=u.Role.value,
+        is_active=u.IsActive,
+        created_at=u.CreatedAt,
+        last_login=u.LastLoginAt,
+    )
+
+
+def _split_name(full_name: str) -> tuple[str, str]:
+    parts = full_name.strip().split(" ", 1)
+    return parts[0], parts[1] if len(parts) > 1 else ""
+
 
 # ── GET /admin/stats ──────────────────────────────────────────────────────────
 
-@router.get("/stats", response_model=SystemStats,
-            summary="Live dashboard metrics")
+@router.get("/stats", response_model=SystemStats, summary="Live dashboard metrics")
 async def get_system_stats(
     _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
@@ -48,7 +85,7 @@ async def get_system_stats(
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
     total_students = (await db.execute(
-        select(func.count(Student.id)).where(Student.is_active == True)
+        select(func.count(Student.id)).where(Student.EnrollmentStatus == "Active")
     )).scalar_one()
 
     enrolled_students = (await db.execute(
@@ -56,9 +93,7 @@ async def get_system_stats(
     )).scalar_one()
 
     todays_res = await db.execute(
-        select(VerificationAttempt).where(
-            VerificationAttempt.attempted_at >= today_start
-        )
+        select(VerificationAttempt).where(VerificationAttempt.attempted_at >= today_start)
     )
     todays = todays_res.scalars().all()
 
@@ -67,6 +102,7 @@ async def get_system_stats(
         VerificationOutcome.granted, VerificationOutcome.overridden))
     overrides_today = sum(1 for a in todays if a.was_overridden)
 
+    total_today = len(todays)
     false_acceptances = sum(
         1 for a in todays
         if a.face_similarity_score and a.face_similarity_score >= 0.65
@@ -76,20 +112,14 @@ async def get_system_stats(
         1 for a in todays
         if a.outcome == VerificationOutcome.denied_identity and a.was_overridden
     )
-
-    total_today = len(todays)
     far = round(false_acceptances / total_today, 5) if total_today else 0.0
     frr = round(false_rejections / total_today, 5) if total_today else 0.0
 
     times = [a.processing_time_ms for a in todays if a.processing_time_ms]
     avg_ms = round(sum(times) / len(times)) if times else 0
 
-    now = datetime.now(timezone.utc)
     active_sessions = (await db.execute(
-        select(func.count(ExamSession.id)).where(
-            ExamSession.scheduled_start <= now,
-            ExamSession.scheduled_end >= now,
-        )
+        select(func.count(ExamSession.id)).where(ExamSession.Status == SessionStatus.ACTIVE)
     )).scalar_one()
 
     return SystemStats(
@@ -113,23 +143,24 @@ async def list_venues(
     _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    now = datetime.now(timezone.utc)
+    today = date.today()
     result = await db.execute(
         select(ExamSession)
-        .where(ExamSession.scheduled_end >= now)
-        .order_by(ExamSession.scheduled_start)
+        .where(ExamSession.ExamDate >= today)
+        .order_by(ExamSession.ExamDate, ExamSession.StartTime)
     )
     sessions = result.scalars().all()
     venues: dict = {}
     for s in sessions:
-        if s.venue not in venues:
-            venues[s.venue] = {"venue": s.venue, "campus": s.campus, "upcoming_sessions": []}
-        venues[s.venue]["upcoming_sessions"].append({
+        key = s.VenueLocation
+        if key not in venues:
+            venues[key] = {"venue": s.VenueLocation, "campus": "", "upcoming_sessions": []}
+        venues[key]["upcoming_sessions"].append({
             "session_id": str(s.id),
-            "module_code": s.module_code,
-            "module_name": s.module_name,
-            "scheduled_start": s.scheduled_start.isoformat(),
-            "scheduled_end": s.scheduled_end.isoformat(),
+            "module_code": s.ModuleCode,
+            "module_name": s.ModuleName,
+            "scheduled_start": datetime.combine(s.ExamDate, s.StartTime).isoformat() if s.ExamDate and s.StartTime else None,
+            "scheduled_end": datetime.combine(s.ExamDate, s.EndTime).isoformat() if s.ExamDate and s.EndTime else None,
         })
     return list(venues.values())
 
@@ -143,44 +174,40 @@ async def create_exam_session(
     current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    # Check for venue/time clash
+    exam_date = body.scheduled_start.date()
+    start_time = body.scheduled_start.time()
+    end_time = body.scheduled_end.time()
+
+    # Check for venue/time clash on same date
     clash_res = await db.execute(
         select(ExamSession).where(
-            ExamSession.venue == body.venue,
-            ExamSession.scheduled_start < body.scheduled_end,
-            ExamSession.scheduled_end > body.scheduled_start,
+            ExamSession.VenueLocation == body.venue,
+            ExamSession.ExamDate == exam_date,
+            ExamSession.StartTime < end_time,
+            ExamSession.EndTime > start_time,
         )
     )
     clash = clash_res.scalar_one_or_none()
     if clash:
         raise HTTPException(
             status_code=409,
-            detail=f"Venue {body.venue} is already booked for {clash.module_code} during that time",
+            detail=f"Venue '{body.venue}' is already booked for {clash.ModuleCode} during that time",
         )
 
     session = ExamSession(
-        module_code=body.module_code.upper(),
-        module_name=body.module_name,
-        venue=body.venue,
-        campus=body.campus,
-        scheduled_start=body.scheduled_start,
-        scheduled_end=body.scheduled_end,
-        created_by=current_user.id,
+        ModuleCode=body.module_code.upper(),
+        ModuleName=body.module_name,
+        VenueLocation=body.venue,
+        ExamDate=exam_date,
+        StartTime=start_time,
+        EndTime=end_time,
+        CreatedBy=current_user.id,
+        Status=SessionStatus.SCHEDULED,
     )
     db.add(session)
     await db.commit()
     await db.refresh(session)
-
-    return ExamSessionResponse(
-        session_id=session.id,
-        module_code=session.module_code,
-        module_name=session.module_name,
-        venue=session.venue,
-        campus=session.campus,
-        scheduled_start=session.scheduled_start,
-        scheduled_end=session.scheduled_end,
-        created_at=session.created_at,
-    )
+    return _exam_session_to_response(session)
 
 
 # ── GET /admin/exam-sessions ──────────────────────────────────────────────────
@@ -194,33 +221,22 @@ async def list_exam_sessions(
     _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(ExamSession)
+    stmt = select(ExamSession).options(selectinload(ExamSession.attempts))
     if upcoming_only:
-        stmt = stmt.where(ExamSession.scheduled_end >= datetime.now(timezone.utc))
+        stmt = stmt.where(ExamSession.ExamDate >= date.today())
     if venue:
-        stmt = stmt.where(ExamSession.venue.ilike(f"%{venue}%"))
+        stmt = stmt.where(ExamSession.VenueLocation.ilike(f"%{venue}%"))
     if module_code:
-        stmt = stmt.where(ExamSession.module_code.ilike(f"%{module_code}%"))
+        stmt = stmt.where(ExamSession.ModuleCode.ilike(f"%{module_code}%"))
 
-    result = await db.execute(stmt.order_by(ExamSession.scheduled_start))
+    result = await db.execute(stmt.order_by(ExamSession.ExamDate, ExamSession.StartTime))
     sessions = result.scalars().all()
 
     output = []
     for s in sessions:
         granted = sum(1 for a in s.attempts if a.outcome in (
             VerificationOutcome.granted, VerificationOutcome.overridden))
-        output.append(ExamSessionResponse(
-            session_id=s.id,
-            module_code=s.module_code,
-            module_name=s.module_name,
-            venue=s.venue,
-            campus=s.campus,
-            scheduled_start=s.scheduled_start,
-            scheduled_end=s.scheduled_end,
-            created_at=s.created_at,
-            total_attempts=len(s.attempts),
-            granted_count=granted,
-        ))
+        output.append(_exam_session_to_response(s, total_attempts=len(s.attempts), granted_count=granted))
     return output
 
 
@@ -229,7 +245,7 @@ async def list_exam_sessions(
 @router.get("/reports/attempts", summary="Paginated audit log of all verification attempts")
 async def get_attempt_log(
     outcome: Optional[str] = Query(None),
-    exam_session_id: Optional[UUID] = Query(None),
+    exam_session_id: Optional[int] = Query(None),
     student_number: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
@@ -238,15 +254,16 @@ async def get_attempt_log(
 ):
     stmt = (
         select(VerificationAttempt)
-        .outerjoin(Student)
-        .outerjoin(ExamSession)
+        .options(selectinload(VerificationAttempt.student), selectinload(VerificationAttempt.exam_session))
+        .outerjoin(Student, VerificationAttempt.student_id == Student.id)
+        .outerjoin(ExamSession, VerificationAttempt.exam_session_id == ExamSession.id)
     )
     if outcome:
         stmt = stmt.where(VerificationAttempt.outcome == outcome)
     if exam_session_id:
         stmt = stmt.where(VerificationAttempt.exam_session_id == exam_session_id)
     if student_number:
-        stmt = stmt.where(Student.student_number == student_number.upper())
+        stmt = stmt.where(Student.StudentNumber == student_number.upper())
 
     count_res = await db.execute(select(func.count()).select_from(stmt.subquery()))
     total = count_res.scalar_one()
@@ -258,10 +275,10 @@ async def get_attempt_log(
 
     entries = [{
         "attempt_id": str(a.id),
-        "student_number": a.student.student_number if a.student else None,
-        "student_name": a.student.full_name if a.student else None,
-        "exam_session": a.exam_session.module_code if a.exam_session else None,
-        "venue": a.exam_session.venue if a.exam_session else None,
+        "student_number": a.student.StudentNumber if a.student else None,
+        "student_name": a.student.FullName if a.student else None,
+        "exam_session": a.exam_session.ModuleCode if a.exam_session else None,
+        "venue": a.exam_session.VenueLocation if a.exam_session else None,
         "outcome": a.outcome.value,
         "face_similarity_score": a.face_similarity_score,
         "liveness_score": a.liveness_score,
@@ -278,19 +295,18 @@ async def get_attempt_log(
 @router.get("/reports/attendance/{session_id}", response_model=AttendanceRegister,
             summary="Digital attendance register for an exam session")
 async def get_attendance_register(
-    session_id: UUID,
+    session_id: int,
     _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    sess_res = await db.execute(
-        select(ExamSession).where(ExamSession.id == session_id)
-    )
+    sess_res = await db.execute(select(ExamSession).where(ExamSession.id == session_id))
     session = sess_res.scalar_one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="Exam session not found")
 
     att_res = await db.execute(
         select(VerificationAttempt)
+        .options(selectinload(VerificationAttempt.student))
         .where(VerificationAttempt.exam_session_id == session_id)
         .order_by(VerificationAttempt.attempted_at)
     )
@@ -301,8 +317,8 @@ async def get_attendance_register(
 
     entries = [
         AttendanceRegisterEntry(
-            student_number=a.student.student_number if a.student else "UNKNOWN",
-            student_name=a.student.full_name if a.student else "Unknown",
+            student_number=a.student.StudentNumber if a.student else "UNKNOWN",
+            student_name=a.student.FullName if a.student else "Unknown",
             outcome=a.outcome.value,
             attempted_at=a.attempted_at,
             was_overridden=a.was_overridden,
@@ -310,12 +326,14 @@ async def get_attendance_register(
         for a in attended
     ]
 
+    scheduled_start = datetime.combine(session.ExamDate, session.StartTime) if session.ExamDate and session.StartTime else None
+
     return AttendanceRegister(
         exam_session_id=session.id,
-        module_code=session.module_code,
-        module_name=session.module_name,
-        venue=session.venue,
-        scheduled_start=session.scheduled_start,
+        module_code=session.ModuleCode,
+        module_name=session.ModuleName,
+        venue=session.VenueLocation,
+        scheduled_start=scheduled_start,
         total_registered=len(attempts),
         attended=len(attended),
         entries=entries,
@@ -331,47 +349,44 @@ async def create_user(
     current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    dup = await db.execute(select(SystemUser).where(SystemUser.email == body.email))
+    dup = await db.execute(select(SystemUser).where(SystemUser.Email == body.email))
     if dup.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email already registered")
-    if body.role not in [r.value for r in UserRole]:
-        raise HTTPException(status_code=422,
-                            detail=f"Invalid role. Must be one of: {[r.value for r in UserRole]}")
 
-    # Generate a secure temporary password — ignore whatever the admin typed
+    valid_roles = [r.value for r in UserRole]
+    if body.role not in valid_roles:
+        raise HTTPException(status_code=422,
+                            detail=f"Invalid role. Must be one of: {valid_roles}")
+
+    first_name, last_name = _split_name(body.full_name)
     temp_password = generate_temp_password()
 
     user = SystemUser(
-        email=body.email,
-        full_name=body.full_name,
-        hashed_password=hash_password(temp_password),
-        role=UserRole(body.role),
+        Username=body.email,
+        Email=body.email,
+        FirstName=first_name,
+        LastName=last_name,
+        PasswordHash=hash_password(temp_password),
+        Role=UserRole(body.role),
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
 
-    # Send the temporary password to the new user's email address
     email_sent = await send_temporary_password_email(
-        full_name=user.full_name,
-        email=user.email,
+        full_name=user.FullName,
+        email=user.Email,
         temp_password=temp_password,
     )
-
     if not email_sent:
-        # Log a warning but do not fail the request — account is created
-        import logging
-        logging.getLogger(__name__).warning(
-            "Account created for %s but email delivery failed", user.email
-        )
+        logger.warning("Account created for %s but email delivery failed", user.Email)
 
-    return user
+    return _user_to_response(user)
 
 
 # ── GET /admin/users ──────────────────────────────────────────────────────────
 
-@router.get("/users", response_model=list[UserResponse],
-            summary="List all system users")
+@router.get("/users", response_model=list[UserResponse], summary="List all system users")
 async def list_users(
     role: Optional[str] = Query(None),
     _: SystemUser = Depends(require_admin),
@@ -379,6 +394,7 @@ async def list_users(
 ):
     stmt = select(SystemUser)
     if role:
-        stmt = stmt.where(SystemUser.role == role)
-    result = await db.execute(stmt.order_by(SystemUser.full_name))
-    return result.scalars().all()
+        stmt = stmt.where(SystemUser.Role == role)
+    result = await db.execute(stmt.order_by(SystemUser.FirstName, SystemUser.LastName))
+    users = result.scalars().all()
+    return [_user_to_response(u) for u in users]

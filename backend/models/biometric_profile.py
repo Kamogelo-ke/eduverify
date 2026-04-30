@@ -35,4 +35,4 @@ class BiometricProfile(Base):
     last_updated = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 
     student = relationship("Student", back_populates="biometric_profile")
-    enrolled_by_user = relationship("User", foreign_keys=[enrolled_by])
+    enrolled_by_user = relationship("SystemUser", foreign_keys=[enrolled_by])

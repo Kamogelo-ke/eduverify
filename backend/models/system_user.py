@@ -5,10 +5,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import Mapped, relationship
 import enum
 from datetime import datetime
-from passlib.context import CryptContext
 from database import Base
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
@@ -49,10 +46,14 @@ class SystemUser(Base):
     # access_logs : Mapped["AccessLog"]= relationship("AccessLog", back_populates="user")
     # created_sessions : Mapped["ExamSession"] = relationship("ExamSession", foreign_keys="ExamSession.CreatedBy")
     
-    
+    attempts_overridden = relationship(
+    "VerificationAttempt",
+    back_populates="overriding_user",
+    foreign_keys="VerificationAttempt.overridden_by",
+    )
     def verify_password(self, password: str) -> bool:
         """Verify user password"""
-        return pwd_context.verify(password, self.PasswordHash)
+        return bcrypt.checkpw(password.encode("utf-8")[:72], self.PasswordHash.encode("utf-8"))
     
     def set_password(self, password: str):
         """Hash and set password using bcrypt"""
@@ -63,13 +64,14 @@ class SystemUser(Base):
     
     def set_refresh_token(self, refresh_token: str):
         """Hash and set refresh token"""
-        self.RefreshTokenHash = pwd_context.hash(refresh_token)
-    
+        token_bytes = refresh_token.encode("utf-8")[:72]
+        self.RefreshTokenHash = bcrypt.hashpw(token_bytes, bcrypt.gensalt()).decode("utf-8")
+
     def verify_refresh_token(self, refresh_token: str) -> bool:
         """Verify refresh token"""
         if not self.RefreshTokenHash:
             return False
-        return pwd_context.verify(refresh_token, self.RefreshTokenHash)
+        return bcrypt.checkpw(refresh_token.encode("utf-8")[:72], self.RefreshTokenHash.encode("utf-8"))
     
     def increment_failed_attempts(self):
         """Increment failed login attempts and lock if exceeded"""

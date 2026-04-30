@@ -39,7 +39,7 @@ async def get_current_user(
         )
 
     result = await db.execute(
-        select(SystemUser).where(SystemUser.id == user_id, SystemUser.is_active == True)
+        select(SystemUser).where(SystemUser.id == int(user_id), SystemUser.IsActive == True)
     )
     user = result.scalar_one_or_none()
     if not user:
@@ -53,7 +53,7 @@ async def get_current_user(
 async def require_admin(
     current_user: SystemUser = Depends(get_current_user),
 ) -> SystemUser:
-    if current_user.role != UserRole.admin:
+    if current_user.Role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required",
@@ -64,7 +64,7 @@ async def require_admin(
 async def require_invigilator_or_admin(
     current_user: SystemUser = Depends(get_current_user),
 ) -> SystemUser:
-    if current_user.role not in (UserRole.admin, UserRole.invigilator):
+    if current_user.Role not in (UserRole.ADMIN, UserRole.INVIGILATOR):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invigilator or admin access required",

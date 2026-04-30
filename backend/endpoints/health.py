@@ -1,6 +1,6 @@
 # api/v1/endpoints/health.py
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy import text
+from sqlalchemy import text, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 from datetime import datetime
@@ -8,6 +8,8 @@ from datetime import datetime
 from database import get_db
 from core.dependencies import get_current_user, require_role
 from utils.cache import RedisCache
+from models.exam_session import ExamSession, SessionStatus
+from models.student import Student
 from schemas.health import (
     AIHealthResponse,
     SISHealthResponse,
@@ -158,12 +160,12 @@ async def sync_cache(
         start_time = datetime.now()
         
         # Sync student biometric hashes
-        student_query = await db.execute(
-            text("SELECT id, BiometricHash FROM students WHERE BiometricHash IS NOT NULL")
+        student_result = await db.execute(
+            select(Student.id, Student.BiometricHash).where(Student.BiometricHash.isnot(None))
         )
-        students = student_query.fetchall()
+        students = student_result.fetchall()
         synced_count = 0
-        
+
         for student in students:
             redis_key = f"student:biometric:{student[0]}"
             await RedisCache.set(
@@ -172,25 +174,21 @@ async def sync_cache(
                 ex=3600  # 1 hour TTL
             )
             synced_count += 1
-        
+
         # Sync active exam sessions
-        session_query = await db.execute(
-            text("""
-                SELECT id, ModuleCode, VenueLocation, StartTime, EndTime 
-                FROM exam_sessions 
-                WHERE Status = 'active'
-            """)
+        session_result = await db.execute(
+            select(ExamSession).where(ExamSession.Status == SessionStatus.ACTIVE)
         )
-        active_sessions = session_query.fetchall()
+        active_sessions = session_result.scalars().all()
         
         for session in active_sessions:
-            redis_key = f"session:active:{session[0]}"
+            redis_key = f"session:active:{session.id}"
             session_data = {
-                "session_id": session[0],
-                "module_code": session[1],
-                "venue_location": session[2],
-                "start_time": session[3].isoformat(),
-                "end_time": session[4].isoformat()
+                "session_id": session.id,
+                "module_code": session.ModuleCode,
+                "venue_location": session.VenueLocation,
+                "start_time": str(session.StartTime),
+                "end_time": str(session.EndTime),
             }
             await RedisCache.setex(
                 redis_key,

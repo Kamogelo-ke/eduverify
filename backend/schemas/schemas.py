@@ -56,7 +56,7 @@ class StudentUpdate(BaseModel):
 
 
 class StudentResponse(BaseModel):
-    id: UUID
+    id: int
     student_number: str
     full_name: str
     email: str
@@ -152,13 +152,13 @@ class ExamSessionCreate(BaseModel):
 
 
 class ExamSessionResponse(BaseModel):
-    id: UUID
+    id: int
     module_code: str
     module_name: str
     venue: str
     campus: str
-    scheduled_start: datetime
-    scheduled_end: datetime
+    scheduled_start: Optional[datetime]
+    scheduled_end: Optional[datetime]
     created_at: datetime
     total_attempts: int = 0
     granted_count: int = 0
@@ -190,7 +190,7 @@ class AttendanceRegisterEntry(BaseModel):
 
 
 class AttendanceRegister(BaseModel):
-    exam_session_id: UUID
+    exam_session_id: int
     module_code: str
     module_name: str
     venue: str
@@ -211,7 +211,7 @@ class UserCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: UUID
+    id: int
     email: str
     full_name: str
     role: str

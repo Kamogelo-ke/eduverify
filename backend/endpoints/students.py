@@ -12,19 +12,17 @@ DELETE /students/{id}/face           — erase biometric data (POPIA right to er
 
 from datetime import datetime, timezone
 from typing import Optional
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from database import get_db
 from endpoints.deps import require_admin, require_invigilator_or_admin
 from models.biometric_profile import BiometricProfile
-from models.exam_session import ExamSession
 from models.student import Student
 from models.system_user import SystemUser
-from models.verification_attempt import VerificationAttempt, VerificationOutcome
 from schemas.schemas import (
     StudentCreate, StudentListResponse, StudentResponse, StudentUpdate,
 )
@@ -32,22 +30,25 @@ from schemas.schemas import (
 router = APIRouter(prefix="/students", tags=["Student Profiles"])
 
 
-# ── Helper ────────────────────────────────────────────────────────────────────
+def _split_name(full_name: str) -> tuple[str, str]:
+    parts = full_name.strip().split(" ", 1)
+    return parts[0], parts[1] if len(parts) > 1 else ""
+
 
 def _to_response(student: Student) -> StudentResponse:
     return StudentResponse(
         id=student.id,
-        student_number=student.student_number,
-        full_name=student.full_name,
-        email=student.email,
+        student_number=student.StudentNumber,
+        full_name=student.FullName,
+        email=student.Email,
         programme=student.programme,
         year_of_study=student.year_of_study,
         gender=student.gender.value if student.gender else None,
-        biometric_consent=student.biometric_consent,
-        consent_date=student.consent_date,
-        is_active=student.is_active,
+        biometric_consent=student.ConsentGiven,
+        consent_date=student.ConsentDate,
+        is_active=student.EnrollmentStatus == "Active",
         has_biometric_profile=student.biometric_profile is not None,
-        created_at=student.created_at,
+        created_at=student.CreatedAt,
     )
 
 
@@ -60,29 +61,36 @@ async def register_student(
     current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    # Uniqueness checks
-    dup_num = await db.execute(select(Student).where(Student.student_number == body.student_number))
+    dup_num = await db.execute(select(Student).where(Student.StudentNumber == body.student_number))
     if dup_num.scalar_one_or_none():
         raise HTTPException(status_code=409,
                             detail=f"Student number {body.student_number} already registered")
 
-    dup_email = await db.execute(select(Student).where(Student.email == body.email))
+    dup_email = await db.execute(select(Student).where(Student.Email == body.email))
     if dup_email.scalar_one_or_none():
         raise HTTPException(status_code=409, detail="Email address already in use")
 
+    first_name, last_name = _split_name(body.full_name)
     student = Student(
-        student_number=body.student_number,
-        full_name=body.full_name,
-        email=body.email,
+        StudentNumber=body.student_number,
+        FirstName=first_name,
+        LastName=last_name,
+        Email=body.email,
         programme=body.programme,
         year_of_study=body.year_of_study,
         gender=body.gender,
-        biometric_consent=body.biometric_consent,
-        consent_date=datetime.now(timezone.utc) if body.biometric_consent else None,
+        ConsentGiven=body.biometric_consent,
+        ConsentDate=datetime.utcnow() if body.biometric_consent else None,
     )
     db.add(student)
     await db.commit()
     await db.refresh(student)
+    # Re-fetch with eager load so biometric_profile is available without lazy IO
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student.id)
+    )
+    student = result.scalar_one()
     return _to_response(student)
 
 
@@ -99,30 +107,30 @@ async def list_students(
     _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Student)
+    stmt = select(Student).options(selectinload(Student.biometric_profile))
 
     if is_active is not None:
-        stmt = stmt.where(Student.is_active == is_active)
+        enrollment = "Active" if is_active else "Inactive"
+        stmt = stmt.where(Student.EnrollmentStatus == enrollment)
     if programme:
         stmt = stmt.where(Student.programme.ilike(f"%{programme}%"))
     if search:
         term = f"%{search}%"
         stmt = stmt.where(or_(
-            Student.full_name.ilike(term),
-            Student.student_number.ilike(term),
-            Student.email.ilike(term),
+            Student.FirstName.ilike(term),
+            Student.LastName.ilike(term),
+            Student.StudentNumber.ilike(term),
+            Student.Email.ilike(term),
         ))
     if has_biometric is True:
         stmt = stmt.join(BiometricProfile)
     elif has_biometric is False:
         stmt = stmt.where(~Student.biometric_profile.has())
 
-    # Count
     count_result = await db.execute(select(func.count()).select_from(stmt.subquery()))
     total = count_result.scalar_one()
 
-    # Paginate
-    stmt = stmt.order_by(Student.full_name).offset((page - 1) * page_size).limit(page_size)
+    stmt = stmt.order_by(Student.FirstName, Student.LastName).offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(stmt)
     students = result.scalars().all()
 
@@ -142,7 +150,8 @@ async def get_student_by_number(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(Student).where(Student.student_number == student_number.upper())
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.StudentNumber == student_number.upper())
     )
     student = result.scalar_one_or_none()
     if not student:
@@ -154,11 +163,14 @@ async def get_student_by_number(
 
 @router.get("/{student_id}", response_model=StudentResponse, summary="Get a single student record")
 async def get_student(
-    student_id: UUID,
+    student_id: int,
     _: SystemUser = Depends(require_invigilator_or_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Student).where(Student.id == student_id))
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student_id)
+    )
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -169,21 +181,40 @@ async def get_student(
 
 @router.put("/{student_id}", response_model=StudentResponse, summary="Update student details")
 async def update_student(
-    student_id: UUID,
+    student_id: int,
     body: StudentUpdate,
     current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Student).where(Student.id == student_id))
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student_id)
+    )
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    for field, value in body.model_dump(exclude_unset=True).items():
-        setattr(student, field, value)
-    student.updated_at = datetime.now(timezone.utc)
+    if body.full_name is not None:
+        student.FirstName, student.LastName = _split_name(body.full_name)
+    if body.email is not None:
+        student.Email = body.email
+    if body.programme is not None:
+        student.programme = body.programme
+    if body.year_of_study is not None:
+        student.year_of_study = body.year_of_study
+    if body.gender is not None:
+        student.gender = body.gender
+    if body.is_active is not None:
+        student.EnrollmentStatus = "Active" if body.is_active else "Inactive"
+    student.UpdatedAt = datetime.utcnow()
+
     await db.commit()
-    await db.refresh(student)
+    # Re-fetch to keep biometric_profile loaded
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student_id)
+    )
+    student = result.scalar_one()
     return _to_response(student)
 
 
@@ -192,29 +223,31 @@ async def update_student(
 @router.post("/{student_id}/consent", response_model=StudentResponse,
              summary="Record or withdraw biometric consent (POPIA)")
 async def record_consent(
-    student_id: UUID,
+    student_id: int,
     consented: bool = Query(..., description="True = consent given, False = consent withdrawn"),
     current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    POPIA Section 11: explicit informed consent is required before
-    any biometric data may be collected. Withdrawing consent automatically
-    deletes the student's biometric profile.
-    """
-    result = await db.execute(select(Student).where(Student.id == student_id))
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student_id)
+    )
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    student.biometric_consent = consented
-    student.consent_date = datetime.now(timezone.utc) if consented else None
+    student.ConsentGiven = consented
+    student.ConsentDate = datetime.utcnow() if consented else None
 
     if not consented and student.biometric_profile:
         await db.delete(student.biometric_profile)
 
     await db.commit()
-    await db.refresh(student)
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student_id)
+    )
+    student = result.scalar_one()
     return _to_response(student)
 
 
@@ -223,15 +256,14 @@ async def record_consent(
 @router.delete("/{student_id}/face", status_code=status.HTTP_204_NO_CONTENT,
                summary="Delete biometric data — POPIA right to erasure")
 async def delete_biometric(
-    student_id: UUID,
+    student_id: int,
     current_user: SystemUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Permanently deletes the encrypted embedding.
-    The student's academic record is retained.
-    """
-    result = await db.execute(select(Student).where(Student.id == student_id))
+    result = await db.execute(
+        select(Student).options(selectinload(Student.biometric_profile))
+        .where(Student.id == student_id)
+    )
     student = result.scalar_one_or_none()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -239,6 +271,6 @@ async def delete_biometric(
         raise HTTPException(status_code=404, detail="No biometric profile found for this student")
 
     await db.delete(student.biometric_profile)
-    student.biometric_consent = False
-    student.consent_date = None
+    student.ConsentGiven = False
+    student.ConsentDate = None
     await db.commit()
