@@ -66,7 +66,7 @@ class VerificationAttempt(Base):
     student = relationship("Student", back_populates="verification_attempts")
     exam_session = relationship("ExamSession", back_populates="attempts")
     overriding_user = relationship(
-        "User",
+        "SystemUser",
         back_populates="attempts_overridden",
         foreign_keys=[overridden_by],
     )

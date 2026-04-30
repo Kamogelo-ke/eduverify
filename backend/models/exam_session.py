@@ -22,7 +22,7 @@ class ExamSession(Base):
     
     # Venue information
     VenueLocation = Column(String(255), nullable=False)
-    VenueID = Column(Integer, ForeignKey("venues.id"), nullable=False)
+    VenueID = Column(Integer, ForeignKey("venues.id"), nullable=True)
     
     # Schedule
     ExamDate = Column(Date, nullable=False)
@@ -54,7 +54,10 @@ class ExamSession(Base):
     # verification_logs: Mapped["VerificationLog"] = relationship("VerificationLog", back_populates="exam_session")
     # attendance_records: Mapped["AttendanceRegister"] = relationship("AttendanceRegister", back_populates="exam_session")
     # ai_metrics: Mapped["AIMeterics"] = relationship("AIMetrics", back_populates="exam_session")
-    
+    attempts = relationship(
+    "VerificationAttempt",
+    back_populates="exam_session",
+    )
     # Indexes
     __table_args__ = (
         Index('idx_exam_session_venue_date', 'VenueLocation', 'ExamDate'),

@@ -6,15 +6,12 @@ from typing import Dict, Any, Optional, Tuple
 import uuid
 import random
 import string
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-
+from jose import JWTError
 from core.config import settings
+from core.security import create_access_token, create_refresh_token, verify_password as _verify_password
 from models.system_user import SystemUser
 from utils.logging import audit_logger
 # from app.utils.email import send_email
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthService:
     def __init__(self, db: AsyncSession):
@@ -69,8 +66,8 @@ class AuthService:
         await self.db.commit()
         
         # Generate tokens
-        access_token = self._create_access_token(user.id)
-        refresh_token = self._create_refresh_token(user.id)
+        access_token = self._create_access_token(user.id, user.Role.value)
+        refresh_token = self._create_refresh_token(user.id, user.Role.value)
         
         # Store refresh token hash
         user.set_refresh_token(refresh_token)
@@ -134,7 +131,7 @@ class AuthService:
                 return {"success": False, "message": "Invalid refresh token"}
             
             # Generate new access token
-            access_token = self._create_access_token(user_id)
+            access_token = self._create_access_token(user_id, user.Role.value)
             
             audit_logger.log(
                 event="Token refreshed",
@@ -267,24 +264,8 @@ class AuthService:
         
         return {"success": True, "message": "2FA verified"}
     
-    def _create_access_token(self, user_id: int) -> str:
-        """Create JWT access token"""
-        expire = datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
-        payload = {
-            "sub": str(user_id),
-            "exp": expire,
-            "type": "access",
-            "iat": datetime.utcnow()
-        }
-        return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
-    
-    def _create_refresh_token(self, user_id: int) -> str:
-        """Create JWT refresh token"""
-        expire = datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
-        payload = {
-            "sub": str(user_id),
-            "exp": expire,
-            "type": "refresh",
-            "iat": datetime.utcnow()
-        }
-        return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    def _create_access_token(self, user_id: int, role: str) -> str:
+        return create_access_token(subject=str(user_id), role=role)
+
+    def _create_refresh_token(self, user_id: int, role: str) -> str:
+        return create_refresh_token(subject=str(user_id), role=role)

@@ -44,6 +44,7 @@ celery
 # HTTP Client & API Integration
 # ============================================
 httpx
+fastapi-mail==1.4.1
 aiohttp
 requests
 
