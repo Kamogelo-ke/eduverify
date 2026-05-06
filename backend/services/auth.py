@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, Tuple
 import uuid
 import random
 import string
-from jose import JWTError
+from jose import JWTError, jwt
 from core.config import settings
 from core.security import create_access_token, create_refresh_token, verify_password as _verify_password
 from models.system_user import SystemUser
@@ -114,8 +114,8 @@ class AuthService:
             # Decode refresh token
             payload = jwt.decode(
                 refresh_token,
-                settings.JWT_SECRET_KEY,
-                algorithms=[settings.JWT_ALGORITHM]
+                settings.SECRET_KEY,
+                algorithms=[settings.ALGORITHM]
             )
             user_id: int = payload.get("sub")
             

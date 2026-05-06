@@ -1,10 +1,11 @@
 import asyncio
-from database import engine
+from database import engine, init_db
 from core.security import hash_password
 from sqlalchemy import text
 
 
 async def seed():
+    await init_db()
     pwd = hash_password("Admin123!")
     async with engine.begin() as conn:
         result = await conn.execute(

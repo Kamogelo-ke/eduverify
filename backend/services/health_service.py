@@ -36,57 +36,17 @@ class HealthService:
     
     async def check_ai_models(self) -> Dict[str, Any]:
         """Check health of all AI models"""
-        health_status = {}
-        
-        try:
-            # Check YOLOv8-Face
-            yolov8_status = await self.ai_service.check_yolov8()
-            health_status["yolov8_face"] = {
-                "status": "loaded" if yolov8_status else "failed",
-                "version": "v8.0.0",
-                # "gpu_available": torch.cuda.is_available()
-            }
-            
-            # Check MediaPipe
-            mediapipe_status = await self.ai_service.check_mediapipe()
-            health_status["mediapipe_landmark"] = {
-                "status": "loaded" if mediapipe_status else "failed",
-                "version": "2.0.0"
-            }
-            
-            # Check ArcFace
-            arcface_status = await self.ai_service.check_arcface()
-            health_status["arcface_matcher"] = {
-                "status": "loaded" if arcface_status else "failed",
-                "feature_dimension": 512,
-                "threshold": 0.68
-            }
-            
-            # Check DINOv2 PAD
-            dinov2_status = await self.ai_service.check_dinov2()
-            health_status["dinov2_pad"] = {
-                "status": "loaded" if dinov2_status else "failed",
-                "anti_spoof_enabled": True,
-                "model_size": "small"
-            }
-            
-            all_loaded = all([
-                yolov8_status, mediapipe_status, arcface_status, dinov2_status
-            ])
-            
-            return {
-                "status": "healthy" if all_loaded else "degraded",
-                "models": health_status,
-                # "gpu_memory_used_mb": torch.cuda.memory_allocated() / 1024**2 if torch.cuda.is_available() else 0,
-                "inference_queue_size": await self.ai_service.get_queue_size(),
-                "avg_inference_time_ms": await self.ai_service.get_avg_inference_time()
-            }
-        except Exception as e:
-            return {
-                "status": "unhealthy",
-                "error": str(e),
-                "models": health_status
-            }
+        return {
+            "status": "not_loaded",
+            "models": {
+                "yolov8_face": {"status": "not_loaded"},
+                "mediapipe_landmark": {"status": "not_loaded"},
+                "arcface_matcher": {"status": "not_loaded"},
+                "dinov2_pad": {"status": "not_loaded"},
+            },
+            "inference_queue_size": 0,
+            "avg_inference_time_ms": 0
+        }
     
     async def get_system_metrics(self) -> Dict[str, Any]:
         """Get detailed system metrics"""
@@ -119,7 +79,6 @@ class HealthService:
                 "environment": settings.ENVIRONMENT
             },
             "cache": {
-                # "redis_connected": redis_client is not None,
                 "redis_url": settings.REDIS_URL if settings.ENVIRONMENT == "development" else "***hidden***"
             }
         }

@@ -43,6 +43,19 @@ class Settings:
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379")
     REDIS_ENABLED: bool = os.getenv("REDIS_ENABLED", "True").lower() == "true"
 
+    # Environment
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+
+    # AI Models
+    AI_MODELS_PATH: str = os.getenv("AI_MODELS_PATH", "/app/models")
+    LIVENESS_THRESHOLD: float = float(os.getenv("LIVENESS_THRESHOLD", "0.75"))
+    FACE_MATCH_THRESHOLD: float = float(os.getenv("FACE_MATCH_THRESHOLD", "0.68"))
+
+    # SIS (Student Information System) integration
+    SIS_API_URL: str = os.getenv("SIS_API_URL", "http://localhost:9000")
+    SIS_API_KEY: str = os.getenv("SIS_API_KEY", "")
+    SIS_TIMEOUT_SECONDS: int = int(os.getenv("SIS_TIMEOUT_SECONDS", "30"))
+
     # Email (SMTP)
     MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")

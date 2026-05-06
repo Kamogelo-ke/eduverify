@@ -65,10 +65,10 @@ def require_role(roles: List[str]):
     async def role_checker(
         current_user: SystemUser = Depends(get_current_user)
     ) -> SystemUser:
-        if current_user.Role not in roles:
+        if current_user.Role.value not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role '{current_user.Role}' not authorized. Required: {', '.join(roles)}"
+                detail=f"Role '{current_user.Role.value}' not authorized. Required: {', '.join(roles)}"
             )
         return current_user
     return role_checker

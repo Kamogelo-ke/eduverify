@@ -59,7 +59,7 @@ async def login(
         access_token=result["access_token"],
         refresh_token=result["refresh_token"],
         token_type="bearer",
-        expires_in=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=UserInfoResponse(
             user_id=result["user"].id,
             username=result["user"].Username,

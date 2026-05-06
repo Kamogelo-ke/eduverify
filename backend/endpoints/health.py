@@ -7,7 +7,7 @@ from datetime import datetime
 
 from database import get_db
 from core.dependencies import get_current_user, require_role
-from utils.cache import RedisCache
+from utils.cache import cache
 from models.exam_session import ExamSession, SessionStatus
 from models.student import Student
 from schemas.health import (
@@ -145,7 +145,7 @@ async def sync_cache(
     - Exam sessions: Active sessions (5 min TTL)
     - Configurations: System settings (24 hour TTL)
     """
-    if not RedisCache:
+    if not cache.enabled:
         return CacheSyncResponse(
             status="error",
             students_synced=0,
@@ -168,10 +168,10 @@ async def sync_cache(
 
         for student in students:
             redis_key = f"student:biometric:{student[0]}"
-            await RedisCache.set(
+            await cache.set(
                 redis_key,
                 student[1],
-                ex=3600  # 1 hour TTL
+                ttl=3600
             )
             synced_count += 1
 
@@ -190,19 +190,19 @@ async def sync_cache(
                 "start_time": str(session.StartTime),
                 "end_time": str(session.EndTime),
             }
-            await RedisCache.setex(
+            await cache.set(
                 redis_key,
-                300,  # 5 minutes
-                str(session_data)
+                str(session_data),
+                ttl=300
             )
-        
+
         # Clear old cache if force flag
         if force:
-            await RedisCache.delete_pattern("temp:*")
-        
+            await cache.delete_pattern("temp:*")
+
         # Get cache size
-        redis_info = await RedisCache.info("memory")
-        cache_size_mb = redis_info.get("used_memory", 0) / 1024 / 1024
+        cache_stats = await cache.get_stats()
+        cache_size_mb = cache_stats.get("used_memory_mb", 0)
         
         duration = (datetime.now() - start_time).total_seconds()
         
