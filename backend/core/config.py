@@ -39,6 +39,10 @@ class Settings:
     MAX_VERIFICATION_TIME: float = 15.0
     MAX_IMAGE_SIZE_MB: int = int(os.getenv("MAX_IMAGE_SIZE_MB", "5"))
 
+    # Redis
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379")
+    REDIS_ENABLED: bool = os.getenv("REDIS_ENABLED", "True").lower() == "true"
+
     # Email (SMTP)
     MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "")
     MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")

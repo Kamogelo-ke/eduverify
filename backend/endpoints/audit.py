@@ -68,7 +68,7 @@ async def export_logs(
     start_date: date,
     end_date: date,
     venue: Optional[str] = None,
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     db: AsyncSession = Depends(get_db),
     current_user: SystemUser = Depends(require_role(["admin"]))
 ):
