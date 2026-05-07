@@ -1,32 +1,61 @@
-from models.attendance import Attendance
 from sqlalchemy.future import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
 
+from models.attendence_register import AttendanceRegister
 
-async def create_attendance(db, student_email, status, venue, exam):
-    record = Attendance(
-        student_email=student_email,
-        status=status,
-        venue=venue,
-        exam=exam
+# ✅ CREATE ATTENDANCE
+async def create_attendance(
+    db: AsyncSession,
+    student_id: int,
+    session_id: int,
+    status: str,
+    notes: str = None
+):
+    record = AttendanceRegister(
+        student_id=student_id,
+        session_id=session_id,
+        Status=status,
+        MarkedAt=datetime.utcnow(),
+        Notes=notes
     )
+
     db.add(record)
     await db.commit()
+    await db.refresh(record)
 
+    return record
 
-async def get_all_attendance(db):
-    result = await db.execute(select(Attendance))
+# ✅ GET ALL ATTENDANCE
+async def get_all_attendance(db: AsyncSession):
+    result = await db.execute(select(AttendanceRegister))
     return result.scalars().all()
 
-
-async def get_attendance_by_exam(db, exam):
+# ✅ GET BY SESSION
+async def get_attendance_by_session(db: AsyncSession, session_id: int):
     result = await db.execute(
-        select(Attendance).where(Attendance.exam == exam)
+        select(AttendanceRegister).where(
+            AttendanceRegister.session_id == session_id
+        )
+    )
+    return result.scalars().all()
+
+# ✅ GET BY STUDENT
+async def get_student_attendance(db: AsyncSession, student_id: int):
+    result = await db.execute(
+        select(AttendanceRegister).where(
+            AttendanceRegister.student_id == student_id
+        )
     )
     return result.scalars().all()
 
 
-async def get_student_status(db, email):
+
+async def get_student_status(db, student_id: int):
     result = await db.execute(
-        select(Attendance).where(Attendance.student_email == email)
+        select(AttendanceRegister).where(
+            AttendanceRegister.student_id == student_id
+        )
     )
     return result.scalars().all()
+
