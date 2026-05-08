@@ -19,17 +19,45 @@ export const useLogin = () => {
         e.preventDefault();
         setIsLoggingIn(true);
 
-        // Simulate a brief API call/verification delay
-        setTimeout(() => {
+        try {
+            // UPDATED: Point directly to your FastAPI backend URL
+            const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: email,
+                    password: password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.detail || 'Login failed');
+                setIsLoggingIn(false);
+                return;
+            }
+
+            // Save token and user info
+            localStorage.setItem('token', data.access_token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
             setIsLoggingIn(false);
 
-            // Route based on role
-            if (role === 'admin') {
-                navigate('/admin-dashboard'); // Admins go to the Student Management dashboard
+            // Route based on backend role
+            if (data.user.role === 'admin') {
+                navigate('/admin-dashboard');
             } else {
-                navigate('/override');   // Invigilators go straight to the face scanner
+                navigate('/override'); // Or wherever invigilators go
             }
-        }, 800);
+
+        } catch (error) {
+            console.error(error);
+            alert('Server error: Make sure your Docker backend is running!');
+            setIsLoggingIn(false);
+        }
     };
 
     return {
