@@ -4,35 +4,54 @@ import { useState } from 'react';
 export const useStudentScanner = () => {
     const [isVerifying, setIsVerifying] = useState(false);
 
+    // Helper function to convert the base64 image from the webcam into a File blob
+    const base64ToBlob = async (base64) => {
+        const response = await fetch(base64);
+        return await response.blob();
+    };
+
     const verifyStudentFace = async (examId, imageBase64) => {
         setIsVerifying(true);
         try {
-            const response = await fetch('http://localhost:5000/api/verify-face', {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Authentication required. Please log in again.');
+            }
+
+            const imageBlob = await base64ToBlob(imageBase64);
+
+            const formData = new FormData();
+            formData.append('image', imageBlob, 'student_capture.jpg');
+
+            if (examId) {
+                formData.append('exam_session_id', examId);
+            }
+            formData.append('terminal_id', 'Web-Scanner-01');
+
+            // 👇 UPDATED: Using relative path! Vite will proxy this to localhost:8000
+            const response = await fetch('/api/v1/face/verify', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                    // Reminder: Do NOT set 'Content-Type' when using FormData
                 },
-                body: JSON.stringify({
-                    examId: examId,
-                    image: imageBase64
-                })
+                body: formData
             });
 
-            // Always try to parse the JSON first, even if response.ok is false,
-            // because the backend might be sending { noFaceDetected: true } alongside an error code.
             const data = await response.json();
 
-            // If it's a server crash AND there's no useful data, then throw an error
             if (!response.ok && !data) {
                 throw new Error('Verification failed on the server.');
             }
 
-            return data; // Returns the result (including failure reasons) to your component
+            return data;
 
         } catch (error) {
             console.error("Error sending face to backend:", error);
-            // Return a fallback object so the frontend doesn't crash completely
-            return { success: false, error: true };
+            return {
+                outcome: "error",
+                outcome_reason: error.message || "Network or server error"
+            };
         } finally {
             setIsVerifying(false);
         }
