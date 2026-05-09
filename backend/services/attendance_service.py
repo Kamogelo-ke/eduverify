@@ -1,6 +1,6 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
+from datetime import datetime, timezone
 
 from models.attendence_register import AttendanceRegister
 
@@ -16,7 +16,7 @@ async def create_attendance(
         student_id=student_id,
         session_id=session_id,
         Status=status,
-        MarkedAt=datetime.utcnow(),
+        MarkedAt=datetime.now(timezone.utc),
         Notes=notes
     )
 

@@ -80,7 +80,7 @@ async def register_student(
         year_of_study=body.year_of_study,
         gender=body.gender,
         ConsentGiven=body.biometric_consent,
-        ConsentDate=datetime.utcnow() if body.biometric_consent else None,
+        ConsentDate=datetime.now(timezone.utc) if body.biometric_consent else None,
     )
     db.add(student)
     await db.commit()
@@ -206,7 +206,7 @@ async def update_student(
         student.gender = body.gender
     if body.is_active is not None:
         student.EnrollmentStatus = "Active" if body.is_active else "Inactive"
-    student.UpdatedAt = datetime.utcnow()
+    student.UpdatedAt = datetime.now(timezone.utc)
 
     await db.commit()
     # Re-fetch to keep biometric_profile loaded
@@ -237,7 +237,7 @@ async def record_consent(
         raise HTTPException(status_code=404, detail="Student not found")
 
     student.ConsentGiven = consented
-    student.ConsentDate = datetime.utcnow() if consented else None
+    student.ConsentDate = datetime.now(timezone.utc) if consented else None
 
     if not consented and student.biometric_profile:
         await db.delete(student.biometric_profile)

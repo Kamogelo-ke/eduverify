@@ -1,71 +1,67 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
+import { api } from '../utils/api';
 
 export const useVenues = () => {
-  // Initial dummy data to match your "Scheduled Exam" logic
-  const [venues, setVenues] = useState([
-    {
-      id: 1,
-      venueName: "Gencor Hall",
-      location: "Soshanguve South",
-      courseCode: "DSO34BT",
-      moduleName: "Development Software III",
-      date: "2026-05-15",
-      time: "09:00",
-      invigilators: ["John Doe", "Sarah Smith"]
-    },
-    {
-      id: 2,
-      venueName: "Building 4-102",
-      location: "Soshanguve North",
-      courseCode: "tpz201t",
-      moduleName: "Technical Programming II",
-      date: "2026-05-16",
-      time: "14:00",
-      invigilators: ["Mike Ross"]
-    }
-  ]);
+    const [venues, setVenues] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [editingVenue, setEditingVenue] = useState(null);
 
-  // State for the Edit Modal
-  const [editingVenue, setEditingVenue] = useState(null);
+    useEffect(() => {
+        const fetchVenues = async () => {
+            try {
+                const data = await api.get('/admin/exam-sessions?upcoming_only=false');
+                setVenues(
+                    (Array.isArray(data) ? data : []).map(s => ({
+                        id: s.id,
+                        venueName: s.venue,
+                        location: '',
+                        courseCode: s.module_code,
+                        moduleName: s.module_name,
+                        date: s.scheduled_start
+                            ? new Date(s.scheduled_start).toISOString().split('T')[0]
+                            : '',
+                        time: s.scheduled_start
+                            ? new Date(s.scheduled_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : '',
+                        invigilators: [],
+                    }))
+                );
+            } catch (err) {
+                console.error('Failed to fetch venues:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  // --- ACTIONS ---
+        fetchVenues();
+    }, []);
 
-  // Delete a scheduled exam
-  const deleteVenue = (id) => {
-    if (window.confirm("Are you sure you want to remove this exam assignment?")) {
-      setVenues(venues.filter((v) => v.id !== id));
-    }
-  };
+    const deleteVenue = (id) => {
+        if (window.confirm('Are you sure you want to remove this exam assignment?')) {
+            setVenues(prev => prev.filter(v => v.id !== id));
+        }
+    };
 
-  // Open the edit modal with the selected venue's data
-  const startEdit = (venue) => {
-    setEditingVenue({ ...venue });
-  };
+    const startEdit = (venue) => setEditingVenue({ ...venue });
 
-  // Handle input changes inside the Edit Modal
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setEditingVenue((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditingVenue(prev => ({ ...prev, [name]: value }));
+    };
 
-  // Save the edited changes back to the list
-  const saveEdit = () => {
-    setVenues((prevVenues) =>
-      prevVenues.map((v) => (v.id === editingVenue.id ? editingVenue : v))
-    );
-    setEditingVenue(null); // Close modal
-  };
+    const saveEdit = () => {
+        setVenues(prev => prev.map(v => v.id === editingVenue.id ? editingVenue : v));
+        setEditingVenue(null);
+    };
 
-  return {
-    venues,
-    editingVenue,
-    deleteVenue,
-    startEdit,
-    handleEditChange,
-    saveEdit,
-    setEditingVenue,
-  };
+    return {
+        venues,
+        editingVenue,
+        loading,
+        deleteVenue,
+        startEdit,
+        handleEditChange,
+        saveEdit,
+        setEditingVenue,
+    };
 };

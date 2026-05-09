@@ -7,29 +7,48 @@ export const useLogin = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [error, setError] = useState('');
 
     const handleRoleChange = (selectedRole) => {
         setRole(selectedRole);
-        // Optional: clear the form when they switch roles
         setEmail('');
         setPassword('');
+        setError('');
     };
 
     const submitLogin = async (e) => {
         e.preventDefault();
         setIsLoggingIn(true);
+        setError('');
 
-        // Simulate a brief API call/verification delay
-        setTimeout(() => {
-            setIsLoggingIn(false);
+        try {
+            const response = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: email, password }),
+            });
 
-            // Route based on role
-            if (role === 'admin') {
-                navigate('/admin-dashboard'); // Admins go to the Student Management dashboard
-            } else {
-                navigate('/override');   // Invigilators go straight to the face scanner
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Login failed');
             }
-        }, 800);
+
+            localStorage.setItem('authToken', data.access_token);
+            localStorage.setItem('refreshToken', data.refresh_token);
+            localStorage.setItem('userRole', data.user.role);
+            localStorage.setItem('userName', `${data.user.first_name} ${data.user.last_name}`);
+
+            if (data.user.role === 'admin') {
+                navigate('/admin-dashboard');
+            } else {
+                navigate('/override');
+            }
+        } catch (err) {
+            setError(err.message || 'Invalid credentials. Please try again.');
+        } finally {
+            setIsLoggingIn(false);
+        }
     };
 
     return {
@@ -40,6 +59,7 @@ export const useLogin = () => {
         password,
         setPassword,
         submitLogin,
-        isLoggingIn
+        isLoggingIn,
+        error,
     };
 };

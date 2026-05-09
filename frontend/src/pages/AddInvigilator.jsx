@@ -3,6 +3,7 @@ import { UserPlus, ArrowLeft } from 'lucide-react'; // Remember to import your n
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { api } from '../utils/api';
 import '../styles/pages/invigilator.scss';
 
 const AddInvigilator = () => {
@@ -12,11 +13,26 @@ const AddInvigilator = () => {
     fullName: '',
     email: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("Invigilator added successfully!");
-    navigate('/'); 
+    setIsSubmitting(true);
+    setError('');
+    try {
+      await api.post('/admin/users', {
+        email: formData.email,
+        full_name: formData.fullName,
+        role: 'invigilator',
+      });
+      alert(`Invigilator ${formData.fullName} added. A temporary password has been emailed to ${formData.email}.`);
+      navigate('/admin-dashboard');
+    } catch (err) {
+      setError(err.message || 'Failed to add invigilator.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,8 +81,11 @@ const AddInvigilator = () => {
                 />
               </div>
 
-              <button type="submit" className="btn-submit">
-                Register Invigilator
+              {error && (
+                <p style={{ color: '#e53e3e', fontSize: '0.875rem', marginBottom: '0.5rem' }}>{error}</p>
+              )}
+              <button type="submit" className="btn-submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Adding...' : 'Register Invigilator'}
               </button>
             </form>
           </div>

@@ -1,14 +1,16 @@
 # schemas/audit.py
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import datetime, date
 from typing import Optional, List
 from enum import Enum
+
 
 class VerificationOutcome(str, Enum):
     SUCCESS = "Success"
     DENIED_BIOMETRIC_FAIL = "Denied_Biometric_Fail"
     DENIED_NOT_REGISTERED = "Denied_Not_Registered"
     MANUAL_OVERRIDE = "Manual_Override"
+
 
 class VerificationLogCreate(BaseModel):
     student_id: int = Field(..., gt=0)
@@ -20,9 +22,11 @@ class VerificationLogCreate(BaseModel):
     attempt_number: int = Field(1, ge=1, le=10)
     face_match_score: Optional[float] = Field(None, ge=0, le=1)
     liveness_score: Optional[float] = Field(None, ge=0, le=1)
-    
+
 
 class VerificationLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     log_id: int
     student_id: int
     student_name: str
@@ -32,14 +36,13 @@ class VerificationLogResponse(BaseModel):
     device_id: str
     face_match_score: Optional[float]
     liveness_score: Optional[float]
-    
-    class Config:
-        from_attributes = True
+
 
 class SessionLogsResponse(BaseModel):
     venue: str
     total_logs: int
     logs: List[VerificationLogResponse]
+
 
 class StudentLogsResponse(BaseModel):
     student_id: int
@@ -49,17 +52,20 @@ class StudentLogsResponse(BaseModel):
     failed_attempts: int
     logs: List[dict]
 
+
 class ExportFilters(BaseModel):
     start_date: date
     end_date: date
     venue: Optional[str] = None
     format: str = "csv"
-    
-    @validator('end_date')
-    def validate_date_range(cls, v, values):
-        if 'start_date' in values and v < values['start_date']:
+
+    @field_validator('end_date')
+    @classmethod
+    def validate_date_range(cls, v, info):
+        if 'start_date' in info.data and v < info.data['start_date']:
             raise ValueError('end_date must be after start_date')
         return v
+
 
 class AuditStatistics(BaseModel):
     period_days: int

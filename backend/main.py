@@ -29,6 +29,7 @@ app = FastAPI(lifespan=lifespan)
 # Default root endpoint
 origins = [
     "http://localhost:3000",
+    "http://localhost:5173",
 ]
 
 app.add_middleware(

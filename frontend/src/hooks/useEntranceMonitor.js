@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from 'react';
+import { api } from '../utils/api';
 
 export const useEntranceMonitor = () => {
-  const [scans, setScans] = useState([
-    { id: 1, name: "Sambo L.", studentNo: "223506755", status: "Granted", time: "08:54" },
-    { id: 2, name: "Khumalo S.M.", studentNo: "222958431", status: "Granted", time: "08:45" },
-    { id: 3, name: "Molalatladi K.L.", studentNo: "230403716", status: "Override", time: "08:42" },
-    { id: 4, name: "Khoza K.", studentNo: "219084322", status: "Denied", time: "08:40" },
-  ]);
+    const [scans, setScans] = useState([]);
+    const [stats, setStats] = useState({ total: 0, granted: 0, denied: 0, overrides: 0 });
+    const [loading, setLoading] = useState(true);
 
-  const stats = {
-    total: 42,
-    granted: 38,
-    denied: 3,
-    overrides: 1
-  };
+    useEffect(() => {
+        const fetchScans = async () => {
+            try {
+                const data = await api.get('/admin/reports/attempts?page_size=20');
+                const attempts = data.attempts || [];
 
-  return { scans, stats };
+                setScans(
+                    attempts.map((a, i) => ({
+                        id: i + 1,
+                        name: a.student_name || 'Unknown',
+                        studentNo: a.student_number || 'N/A',
+                        status: a.was_overridden ? 'Override' : a.outcome === 'granted' ? 'Granted' : 'Denied',
+                        time: new Date(a.attempted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    }))
+                );
+
+                const granted = attempts.filter(a => a.outcome === 'granted').length;
+                const overrides = attempts.filter(a => a.was_overridden).length;
+                const denied = attempts.filter(a => a.outcome !== 'granted' && !a.was_overridden).length;
+                setStats({ total: data.total ?? attempts.length, granted, denied, overrides });
+            } catch (err) {
+                console.error('Failed to fetch entrance monitor data:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchScans();
+    }, []);
+
+    return { scans, stats, loading };
 };

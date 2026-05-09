@@ -1,6 +1,6 @@
 # backend/utils/logging.py
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 import json
 from decimal import Decimal
@@ -44,7 +44,7 @@ class AuditLogger:
         """
         log_entry = {
             "event": event,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         
         if user_id:
