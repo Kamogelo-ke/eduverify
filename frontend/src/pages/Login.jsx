@@ -18,7 +18,8 @@ const Login = () => {
         password,
         setPassword,
         submitLogin,
-        isLoggingIn
+        isLoggingIn,
+        error,
     } = useLogin();
 
     return (
@@ -86,6 +87,12 @@ const Login = () => {
                                 />
                             </div>
                         </div>
+
+                        {error && (
+                            <p style={{ color: '#e53e3e', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
+                                {error}
+                            </p>
+                        )}
 
                         <button type="submit" className="btn-submit" disabled={isLoggingIn}>
                             {isLoggingIn ? (

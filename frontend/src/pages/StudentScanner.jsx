@@ -8,9 +8,6 @@ import { useStudentScanner } from '../hooks/useStudentScanner';
 
 import '../styles/pages/studentScanner.scss';
 
-// Hardcode the exam ID
-const PRESET_EXAM = "cs101";
-
 const StudentScanner = () => {
     const { verifyStudentFace, isVerifying } = useStudentScanner();
 
@@ -19,7 +16,11 @@ const StudentScanner = () => {
     const [capturedImage, setCapturedImage] = useState(null);
     const [verificationResult, setVerificationResult] = useState(null);
 
-    // NEW: Track if the AI models are ready
+    // Exam session selection
+    const [examSessions, setExamSessions] = useState([]);
+    const [selectedSession, setSelectedSession] = useState(null);
+
+    // Track if the AI models are ready
     const [modelsLoaded, setModelsLoaded] = useState(false);
 
     // HTML Element References
@@ -27,18 +28,36 @@ const StudentScanner = () => {
     const canvasRef = useRef(null);
     const streamRef = useRef(null);
 
-    // 1. MOVED INSIDE: Load models when the component mounts
+    // Load face-api.js models and active exam sessions on mount
     useEffect(() => {
         const loadModels = async () => {
             try {
-                const MODEL_URL = '/models'; // Ensure your models are inside public/models
+                const MODEL_URL = '/models';
                 await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
                 setModelsLoaded(true);
             } catch (error) {
                 console.error("Failed to load FaceAPI models:", error);
             }
         };
+
+        const loadSessions = async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                const res = await fetch('/api/v1/admin/exam-sessions', {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setExamSessions(Array.isArray(data) ? data : []);
+                    if (data.length > 0) setSelectedSession(data[0]);
+                }
+            } catch (err) {
+                console.error('Failed to load exam sessions:', err);
+            }
+        };
+
         loadModels();
+        loadSessions();
 
         // Cleanup camera when leaving the page
         return () => stopCamera();
@@ -130,9 +149,10 @@ const StudentScanner = () => {
         setCapturedImage(imageUrl);
 
         try {
-            const response = await verifyStudentFace(PRESET_EXAM, imageUrl);
+            const examId = selectedSession ? selectedSession.id : null;
+            const response = await verifyStudentFace(examId, imageUrl);
 
-            if (response && response.success) {
+            if (response && response.outcome === 'granted') {
                 setVerificationResult('success');
                 speakMessage("Access granted");
 
@@ -141,7 +161,7 @@ const StudentScanner = () => {
                     setVerificationResult(null);
                 }, 5000);
 
-            } else if (response && response.noFaceDetected) {
+            } else if (response && !response.face_detected) {
                 setCapturedImage(null);
                 setVerificationResult(null);
 
@@ -158,7 +178,7 @@ const StudentScanner = () => {
             setCapturedImage(null);
             setVerificationResult(null);
         }
-    }, [isVerifying, verifyStudentFace, verificationResult, modelsLoaded]);
+    }, [isVerifying, verifyStudentFace, verificationResult, modelsLoaded, selectedSession]);
 
     // Auto-Scan Loop: Trigger a scan every 3 seconds automatically
     useEffect(() => {
@@ -187,8 +207,25 @@ const StudentScanner = () => {
                     </div>
 
                     <div className="panel-content">
-                        <div style={{ marginBottom: '1rem', color: '#64748b', fontSize: '0.875rem' }}>
-                            <strong>Active Exam Session:</strong> Computer Science 101 ({PRESET_EXAM})
+                        <div style={{ marginBottom: '1rem' }}>
+                            <label style={{ display: 'block', fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                                <strong>Active Exam Session</strong>
+                            </label>
+                            {examSessions.length === 0 ? (
+                                <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No upcoming exam sessions found.</p>
+                            ) : (
+                                <select
+                                    value={selectedSession ? selectedSession.id : ''}
+                                    onChange={e => setSelectedSession(examSessions.find(s => s.id === Number(e.target.value)))}
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                                >
+                                    {examSessions.map(s => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.module_code} — {s.module_name} ({s.venue})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
 
                         <div className="camera-display">

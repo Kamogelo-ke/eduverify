@@ -1,37 +1,55 @@
-import { useState, useMemo } from 'react';
-
-// Initial data based on your screenshot
-const INITIAL_STUDENTS = [
-  { id: '2023018456', name: 'Thabo Mokoena', email: 'mokoenat@tut4life.ac.za', faculty: 'Faculty of ICT', program: 'Diploma in Computer Science', face: 'Not Set', exams: 2 },
-  { id: '2022029347', name: 'Nomvula Ndlovu', email: 'ndlovun@tut4life.ac.za', faculty: 'Faculty of Engineering', program: 'BEng in Mechanical Engineering', face: 'Not Set', exams: 0 },
-  { id: '2024031234', name: 'Sipho Zulu', email: 'zulus@tut4life.ac.za', faculty: 'Faculty of ICT', program: 'Bachelor of Information Technology', face: 'Not Set', exams: 2 },
-  { id: '2023015678', name: 'Lerato Khumalo', email: 'khumalol@tut4life.ac.za', faculty: 'Faculty of Science', program: 'BSc in Biotechnology', face: 'Not Set', exams: 1 },
-];
+import { useState, useEffect, useMemo } from 'react';
+import { api } from '../utils/api';
 
 export const useStudents = () => {
-  const [students] = useState(INITIAL_STUDENTS);
-  const [searchTerm, setSearchTerm] = useState('');
+    const [allStudents, setAllStudents] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  // Handles searching across ID, Name, and Email
-  const filteredStudents = useMemo(() => {
-    return students.filter((student) => {
-      const searchStr = searchTerm.toLowerCase();
-      return (
-        student.name.toLowerCase().includes(searchStr) ||
-        student.id.includes(searchStr) ||
-        student.email.toLowerCase().includes(searchStr)
-      );
-    });
-  }, [students, searchTerm]);
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                const data = await api.get('/students/?page_size=100');
+                setAllStudents(
+                    (data.students || []).map(s => ({
+                        id: s.student_number,
+                        name: s.full_name,
+                        email: s.email,
+                        faculty: '',
+                        program: s.programme || '',
+                        face: s.has_biometric_profile ? 'Registered' : 'Not Set',
+                        exams: 0,
+                    }))
+                );
+            } catch (err) {
+                setError(err.message);
+                console.error('Failed to fetch students:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+        fetchStudents();
+    }, []);
 
-  return {
-    students: filteredStudents,
-    searchTerm,
-    handleSearchChange,
-    totalCount: students.length
-  };
+    const filteredStudents = useMemo(() => {
+        const searchStr = searchTerm.toLowerCase();
+        return allStudents.filter(s =>
+            s.name.toLowerCase().includes(searchStr) ||
+            s.id.toLowerCase().includes(searchStr) ||
+            s.email.toLowerCase().includes(searchStr)
+        );
+    }, [allStudents, searchTerm]);
+
+    const handleSearchChange = (e) => setSearchTerm(e.target.value);
+
+    return {
+        students: filteredStudents,
+        searchTerm,
+        handleSearchChange,
+        totalCount: allStudents.length,
+        loading,
+        error,
+    };
 };

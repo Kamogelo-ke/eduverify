@@ -32,34 +32,31 @@ const RegisterFace = () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
-    const faceImage = canvas.toDataURL('image/jpeg');
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg'));
 
     // 2. Gather form data
-    const formData = new FormData(e.target);
-    const studentData = {
-      studentNumber: formData.get('studentNumber'),
-      email: formData.get('email'),
-      firstName: formData.get('firstName'),
-      lastName: formData.get('lastName'),
-      faculty: formData.get('faculty'),
-      program: formData.get('program'),
-      faceImage: faceImage // Base64 string for Prisma
-    };
+    const fields = new FormData(e.target);
+    const studentNumber = fields.get('studentNumber');
 
-    // 3. API Call
+    // 3. API Call — enroll face biometric for existing student
     try {
-      const response = await fetch('http://localhost:5000/api/students/register', {
+      const token = localStorage.getItem('authToken');
+      const payload = new FormData();
+      payload.append('image', blob, 'capture.jpg');
+      payload.append('student_number', studentNumber);
+
+      const response = await fetch('/api/v1/face/enroll', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(studentData),
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: payload,
       });
 
       if (response.ok) {
-        alert("Student Registered Successfully!");
-        navigate('/dashboard');
+        alert("Face registered successfully!");
+        navigate('/students');
       } else {
         const errData = await response.json();
-        alert(`Registration failed: ${errData.message}`);
+        alert(`Registration failed: ${errData.detail || errData.message}`);
       }
     } catch (err) {
       console.error("API Error:", err);
